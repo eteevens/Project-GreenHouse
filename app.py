@@ -1,9 +1,5 @@
 import cv2 #openCV for camera controls
 
-import plotly
-import pandas as pd
-import plotly.express as px
-from plotly.offline import plot
 import json #to save the data to be displayed
 import numpy as np #numpy for random number
 
@@ -13,6 +9,10 @@ from datetime import date #date module for current date
 from flask import Flask #flask main
 from flask import render_template #html pages
 from flask import Response #functions
+from flask import jsonify, request #for the live graph feed
+import webbrowser
+import time
+import random
 
 app = Flask(__name__) #initalize the web application
 
@@ -46,7 +46,7 @@ def camera_frames():
                   b'Content-Type: image/jpeg\r\n\r\n' + outputFrame + b'\r\n')
 
     vc.release()
-
+"""
 def graph_display():
     #the graph display for the page
 
@@ -61,6 +61,7 @@ def graph_display():
 
     fig = px.line(df)
     plot(fig, filename='templates/temp-plot.html')
+"""
 
 def calendar_display():
     #the calendar display for the page
@@ -83,9 +84,9 @@ def index():
 def video_feed_route():
     return Response(camera_frames(), mimetype = "multipart/x-mixed-replace; boundary=frame")
 
-@app.route('/graph_feed') #graph feed route
+@app.route('/graph_feed', methods = ['GET']) #graph feed route
 def graph_feed_route():
-    return render_template('temp-plot.html')
+    return jsonify(result=random.randint(0, 10))
 
 @app.route('/calendar_feed') #calendar feed route
 def calendar_feed_route():

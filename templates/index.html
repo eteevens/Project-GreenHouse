@@ -3,6 +3,8 @@
 
 <head>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><!--The chart.js library-->
+
 <style>
 
 p {
@@ -14,7 +16,6 @@ h1 {
 }
 
 img {
-  min-width: 20%;
   margin: 0;
 }
 
@@ -24,25 +25,20 @@ iframe {
 
 .graphics {
   grid-area: graph;
-  padding: 0%;
 }
 
 .video {
   grid-area: camera;
-  padding: 0%;
 }
 
 .time-controls {
   grid-area: timing;
-  padding: 0%;
 }
 
 .other-controls {
   grid-area: controls;
-  padding: 5%;
+  padding-top: 0%;
 }
-
-
 
 .layout-container {
   display: grid;
@@ -53,13 +49,15 @@ iframe {
   'graph graph graph graph timing timing timing'
   'graph graph graph graph timing timing timing'
   'controls controls controls controls timing timing timing';
+  grid-template-columns: 12% 12% 12% 12% 12% 12% 12%;
+  grid-template-rows: 12% 12% 12% 12% 12% 12%;
   grid-gap: 2%;
-  padding: 0%;
+  justify-content: center;
 }
 
 .layout-container > div {
   text-align: center;
-  outline: 0px outset black;
+  outline: 1px outset black;
   font-family: verdana;
 }
 
@@ -67,24 +65,62 @@ iframe {
 
 </head>
 
-
-<body>
+<body> 
 
   <!-- tempoary header and grid layout of the project-->
   <h1 style="text-align:center;"> Project GreenHouse </h1>
 
   <div class=layout-container>
-    <div class=graphics><iframe src="/graph_feed" width=100% height=100%></iframe></div>
-    <div class=video><img src="{{ url_for('video_feed_route') }}" width="100%" height=100%></img>
+    <div class=graphics><div>
+      <canvas id="live_graph"></canvas>
+    </div></div>
+    <div class=video><img src="{{ url_for('video_feed_route') }}" height=100%></img>
     </div>
-    <div class=time-controls><iframe src="/calendar_feed" width=100% height=100%></iframe></div>
-    <div class=other-controls>
+    <div class=time-controls><iframe src="/calendar_feed"></iframe></div>
+    <div class=other-controls width=100%>
         <button>Lights</button>
         <button>Water Drips</button>
         <button>Save Data</button><br>
         <input type="range"></input><p>temperature</p>
     </div>
   </div>
+
+
+
+  <script>
+    const labels = [
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+    ];
+
+    var data_input = [10, 40, 25, 5, 30, 35];
+
+    var data = {
+      labels: labels,
+      datasets: [{
+        label: 'Test',
+        backgroundColor: 'rgb(0, 210, 0)',
+        borderColor: 'rgb(0, 210, 0)',
+        data: data_input,
+      }]
+    };
+
+    var config = {
+      type: 'line',
+      data: data,
+      options: {}
+    };
+
+      var live_graph = new Chart(
+        document.getElementById('live_graph'),
+        config
+      );
+
+  </script>
 
 </body>
 
