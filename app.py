@@ -1,18 +1,18 @@
 import cv2 #openCV for camera controls
 
-import json #to save the data to be displayed
+import json #to send the data to be displayed on the graph
 import numpy as np #numpy for random number
 
 import calendar #calender for the timing controls
-from datetime import date #date module for current date
+from datetime import datetime #date module for current date, time module
+#for the current time for the graph
 
 from flask import Flask #flask main
 from flask import render_template #html pages
 from flask import Response #functions
-from flask import jsonify, request #for the live graph feed
-import webbrowser
-import time
-import random
+from flask import stream_with_context #for live graph
+
+import time #allows the random data to wait 1 sec
 
 app = Flask(__name__) #initalize the web application
 
@@ -46,26 +46,25 @@ def camera_frames():
                   b'Content-Type: image/jpeg\r\n\r\n' + outputFrame + b'\r\n')
 
     vc.release()
-"""
+
 def graph_display():
-    #the graph display for the page
+    #the graph data for the page
 
     #make the graph figure
-    value1 = np.array(range(100))
-    value2 = np.random.rand(100) * 10
+    #value1 = np.array(range(100))
 
-    df = pd.DataFrame({
-        'value1': value1,
-        'value2': value2
-    })
+    while True:
+        value2 = int(np.random.rand() * 100)
 
-    fig = px.line(df)
-    plot(fig, filename='templates/temp-plot.html')
-"""
+        json_data = json.dumps(
+        {'time':datetime.now().strftime('%H:%M:%S'), 'value': value2})
+        yield f"data:{json_data}\n\n"
+        time.sleep(1)
+
 
 def calendar_display():
     #the calendar display for the page
-    today = date.today() #get current date
+    today = datetime.today() #get current date
     cal = calendar.HTMLCalendar(0) #make a calendar
 
     cal_html = str(cal.formatmonth(today.year, today.month))
@@ -84,9 +83,13 @@ def index():
 def video_feed_route():
     return Response(camera_frames(), mimetype = "multipart/x-mixed-replace; boundary=frame")
 
-@app.route('/graph_feed', methods = ['GET']) #graph feed route
+@app.route('/graph_feed') #graph feed route
 def graph_feed_route():
-    return jsonify(result=random.randint(0, 10))
+    response = Response(stream_with_context(graph_display()),
+    mimetype='text/event-stream')
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["X-Accel-Buffering"] = "no"
+    return response
 
 @app.route('/calendar_feed') #calendar feed route
 def calendar_feed_route():
