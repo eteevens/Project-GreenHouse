@@ -51,15 +51,23 @@ def graph_display():
     #the graph data for the page
 
     #make the graph figure
-    #value1 = np.array(range(100))
+
+    value1 = 0
 
     while True:
+        value1 = (value1 + 15) % 100
         value2 = int(np.random.rand() * 100)
 
-        json_data = json.dumps(
-        {'time':datetime.now().strftime('%H:%M:%S'), 'value': value2})
+        data_to_send = {'time':datetime.now().strftime('%H:%M:%S')}
+
+        data_to_send['value1'] = value1
+        data_to_send['value2'] = value2
+
+        json_data = json.dumps(data_to_send)
+
+
         yield f"data:{json_data}\n\n"
-        time.sleep(1)
+        time.sleep(0.5)
 
 
 def calendar_display():

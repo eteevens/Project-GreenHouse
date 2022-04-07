@@ -11,39 +11,40 @@ class database():
     #instance of the class
         self.file = "" #create an empty string to hold the file path for
         #the database
-        self.engine = alc.create_engine('sqlite:///')
+        self.engine = alc.create_engine('sqlite:///', echo=True)
         #create an empty SQLAlchemy engine, which will later be filled
         #with the database file to be interfaced with, but is temporary
         #connected only with memory, note that this is a relative address
 
-    def openFile(self, filePath):
+    def openFile(self, file_path):
 
-        self.file = filePath #store the file that
+        self.file = file_path #store the file path for the database
+        #based upon what the user has inputted
 
-        if filePath != "": #the current file path must have some value
-            if os.path.exists(filePath) != True:
+        if file_path != "": #the current file path must have some value
+            if os.path.exists(file_path) != True:
                 #if the file does not exist, create it using sqlite3
-                sqlite3.connect(filePath)
+                sqlite3.connect(file_path)
 
-        self.engine = alc.create_engine("sqlite:///{}".format(filePath))
+        self.engine = alc.create_engine("sqlite:///{}".format(file_path))
         #create the SQLAlchemy engine which will allow the
         #database file to be interfaced with
 
-    def printFile(self): #prints the current file, for debugging
-        print("The current file is: {}".format(self.file))
+    def __repr__(self): #return the current values of the class, can be used to
+    #print information for debugging
+        return("<database(file='{}', engine='{}')>".format(self.file,
+        self.engine))
 
-    def printEngine(self): #prints the current engine instance, for debugging
-        print("The current engine is: {}".format(self.engine))
+class table(self):
+    def __init__(self, input_table_name, input_column_data):
+        self.metadata = MetaData() #catelog of metadata which defines tables
 
-#class table():
-"""
-make the class which describes the format of a table, note that this is the
-generalization which is true across all datatypes
-"""
-
+        self.column = tuple([Column('id', Integer)] + [Column(input_column_data[i](0),
+        input_column_data[i](1))) for i in input_column_data]) #
 
 if __name__ == "__main__":
     test = database()
-    test.printEngine()
+    print(test.__repr__())
     test.openFile('trial.db')
-    test.printEngine()
+    print(test.__repr__())
+    test.createTable('new', (0, Integer))
