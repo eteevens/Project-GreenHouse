@@ -104,6 +104,13 @@ iframe {
         borderColor: 'rgb(0, 210, 0)',
         data: [],
         fill: false
+      },
+      {
+        label: 'Random Dataset 2',
+        backgroundColor: 'rgb(210, 0, 0)',
+        borderColor: 'rgb(210, 0, 0)',
+        data: [],
+        fill: false
       }]
     };
 
@@ -115,6 +122,7 @@ iframe {
         responsive: true,
         scales: {
           y: {beginAtZero: true},
+          yAxes: [{ticks: {max: 100}}],
         },
         animation: false
       }
@@ -131,9 +139,11 @@ iframe {
         if (config.data.labels.length === 10) {
           config.data.labels.shift();
           config.data.datasets[0].data.shift();
+          config.data.datasets[1].data.shift();
         }
         config.data.labels.push(data.time);
-        config.data.datasets[0].data.push(data.value);
+        config.data.datasets[0].data.push(data.value1);
+        config.data.datasets[1].data.push(data.value2);
         live_graph.update();
       };
     });
