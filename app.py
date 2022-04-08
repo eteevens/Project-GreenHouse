@@ -57,11 +57,13 @@ def graph_display():
     while True:
         value1 = (value1 + 15) % 100
         value2 = int(np.random.rand() * 100)
+        value3 = int(np.random.rand() * 100)
 
         data_to_send = {'time':datetime.now().strftime('%H:%M:%S')}
 
         data_to_send['value1'] = value1
         data_to_send['value2'] = value2
+        data_to_send['value3'] = value3
 
         json_data = json.dumps(data_to_send)
 

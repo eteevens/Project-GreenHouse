@@ -95,23 +95,30 @@ iframe {
   <!--suppress JSUnresolvedLibraryURL -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
   <script>
+
+    function generateColor() {
+      var hsl = 'hsla(' + Math.floor(Math.random() * 360) + ', 100%, 50%, 1)';
+      return hsl;
+    }
+
+
     $(document).ready(function () {
 
+    var valueCount = 3;
+
+    const dataDisplay = [];
+
+    for (iterDisplay = 0; iterDisplay < valueCount; iterDisplay++) {
+       dataDisplay.push({data: [], fill: false, label: 'var' + iterDisplay});
+    }
+
+    console.log(dataDisplay);
+
     const data = {
-      datasets: [{
-        label: 'Random Dataset',
-        backgroundColor: 'rgb(0, 210, 0)',
-        borderColor: 'rgb(0, 210, 0)',
-        data: [],
-        fill: false
-      },
-      {
-        label: 'Random Dataset 2',
-        backgroundColor: 'rgb(210, 0, 0)',
-        borderColor: 'rgb(210, 0, 0)',
-        data: [],
-        fill: false
-      }]
+      datasets: dataDisplay.map(v => {
+        var color = generateColor();
+        return {...v, backgroundColor: color, borderColor: color}
+      })
     };
 
     const config = {
@@ -138,12 +145,21 @@ iframe {
         const data = JSON.parse(event.data);
         if (config.data.labels.length === 10) {
           config.data.labels.shift();
-          config.data.datasets[0].data.shift();
-          config.data.datasets[1].data.shift();
+          for (iterShift = 0; iterShift < valueCount; iterShift++) {
+            config.data.datasets[iterShift].data.shift();
+          }
         }
         config.data.labels.push(data.time);
-        config.data.datasets[0].data.push(data.value1);
-        config.data.datasets[1].data.push(data.value2);
+
+        var iterUpdate = 0;
+
+        for (let value in data) {
+          if (value != 'time') {
+            config.data.datasets[iterUpdate].data.push(data[value]);
+            iterUpdate++;
+          }
+        }
+
         live_graph.update();
       };
     });
