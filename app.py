@@ -61,9 +61,9 @@ def graph_display():
 
         data_to_send = {'time':datetime.now().strftime('%H:%M:%S')}
 
-        data_to_send['value1'] = value1
-        data_to_send['value2'] = value2
-        data_to_send['value3'] = value3
+        data_to_send['Temperature (in F)'] = value1
+        data_to_send['Humidity'] = value2
+        data_to_send['Light Level'] = value3
 
         json_data = json.dumps(data_to_send)
 
@@ -105,6 +105,10 @@ def graph_feed_route():
 def calendar_feed_route():
     calendar_display()
     return render_template('temp-calendar.html')
+
+@app.route('/controls_feed') #controls feed route
+def controls_feed_route():
+    return 0
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port='5000', debug=True, threaded=True, use_reloader=False)

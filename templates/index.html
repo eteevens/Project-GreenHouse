@@ -70,7 +70,7 @@ iframe {
 
 <body>
 
-  <!-- tempoary header and grid layout of the project-->
+  <!--header and grid layout of the project-->
   <h1 style="text-align:center;"> Project GreenHouse </h1>
 
   <div class=layout-container>
@@ -81,10 +81,11 @@ iframe {
     </div>
     <div class=time-controls><iframe src="/calendar_feed"></iframe></div>
     <div class=other-controls width=100%>
-        <button>Lights</button>
-        <button>Water Drips</button>
-        <button>Save Data</button><br>
-        <input type="range"></input><p>temperature</p>
+        <!--<form action='/app.py/controls_feed' method='post'>
+          <label for='temp'>Temperature:</label>
+          <input type='number' id='temp' name='temp'>
+          <input type='submit'>
+        </form>-->
     </div>
   </div>
 
@@ -109,12 +110,10 @@ iframe {
     const dataDisplay = [];
 
     for (iterDisplay = 0; iterDisplay < valueCount; iterDisplay++) {
-       dataDisplay.push({data: [], fill: false, label: 'var' + iterDisplay});
+       dataDisplay.push({data: [], fill: false, label: ''});
     }
 
-    console.log(dataDisplay);
-
-    const data = {
+    const dataInfo = {
       datasets: dataDisplay.map(v => {
         var color = generateColor();
         return {...v, backgroundColor: color, borderColor: color}
@@ -124,7 +123,7 @@ iframe {
     const config = {
       type: 'line',
       labels: [],
-      data: data,
+      data: dataInfo,
       options: {
         responsive: true,
         scales: {
@@ -156,6 +155,10 @@ iframe {
         for (let value in data) {
           if (value != 'time') {
             config.data.datasets[iterUpdate].data.push(data[value]);
+            if (config.data.datasets[iterUpdate].label != String(value)) {
+              config.data.datasets[iterUpdate].label = String(value);
+              console.log('update the labels!');
+            }
             iterUpdate++;
           }
         }
