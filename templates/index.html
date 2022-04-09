@@ -81,11 +81,11 @@ iframe {
     </div>
     <div class=time-controls><iframe src="/calendar_feed"></iframe></div>
     <div class=other-controls width=100%>
-        <!--<form action='/app.py/controls_feed' method='post'>
-          <label for='temp'>Temperature:</label>
-          <input type='number' id='temp' name='temp'>
-          <input type='submit'>
-        </form>-->
+        <form id="form_data">
+          <label for="temp">Temperature:</label>
+          <input type="number" id="temp" name="temp">
+          <input type="submit">
+        </form>
     </div>
   </div>
 
@@ -101,6 +101,34 @@ iframe {
       var hsl = 'hsla(' + Math.floor(Math.random() * 360) + ', 100%, 50%, 1)';
       return hsl;
     }
+
+    $("#form_data").submit(function (event) {
+
+       var userInput = $("#form_data").serializeArray()[0];
+
+       var outputData = {};
+
+       outputData[userInput["name"]] = userInput["value"];
+
+       if (outputData[userInput["name"]] == "") {
+         console.log('Error, no data inputed');
+         event.preventDefault();
+       }
+
+       else {
+
+         $.ajax({type:"POST",
+                url:"/controls_feed",
+                data:JSON.stringify(outputData),
+                contentType: "application/json",})
+
+                .done(function( json ) {
+                  console.log('the data was sent!')
+                });
+
+         event.preventDefault();
+       }
+    });
 
 
     $(document).ready(function () {
@@ -157,7 +185,6 @@ iframe {
             config.data.datasets[iterUpdate].data.push(data[value]);
             if (config.data.datasets[iterUpdate].label != String(value)) {
               config.data.datasets[iterUpdate].label = String(value);
-              console.log('update the labels!');
             }
             iterUpdate++;
           }

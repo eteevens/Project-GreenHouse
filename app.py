@@ -11,6 +11,7 @@ from flask import Flask #flask main
 from flask import render_template #html pages
 from flask import Response #functions
 from flask import stream_with_context #for live graph
+from flask import request #for controls
 
 import time #allows the random data to wait 1 sec
 
@@ -106,9 +107,11 @@ def calendar_feed_route():
     calendar_display()
     return render_template('temp-calendar.html')
 
-@app.route('/controls_feed') #controls feed route
+@app.route('/controls_feed', methods=["POST"]) #controls feed route
 def controls_feed_route():
-    return 0
+    retrieve = request.get_json()
+    print(retrieve)
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port='5000', debug=True, threaded=True, use_reloader=False)
