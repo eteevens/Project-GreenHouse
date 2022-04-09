@@ -83,8 +83,13 @@ iframe {
     <div class=other-controls width=100%>
         <form id="form_data">
           <label for="temp">Temperature:</label>
-          <input type="number" id="temp" name="temp">
-          <input type="submit">
+          <input type="number" id="temp" name="temp" min="10"><br>
+          <label for="water_drip">Water Drip:</label>
+          <input type="checkbox" id="water_drip" name="water_drip">
+          <label for="lights">Lights:</label>
+          <input type="checkbox" id="lights" name="lights">
+          <br>
+          <input type="submit" value="Submit">
         </form>
     </div>
   </div>
@@ -102,42 +107,94 @@ iframe {
       return hsl;
     }
 
+    /**
+ * Fixes the issue with checkbox forms using serializeArray which ordinarily
+ * only respond when toggled on.
+ *
+ * @see https://ourcodeworld.com/articles/read/1030/how-to-change-the-on-and-off-values-to-boolean-true-or-false-from-checkboxes-with-serialization-with-jquery-serialize-and-serializearray
+ */
+(function ($) {
+    $.fn.serialize = function (options) {
+        return $.param(this.serializeArray(options));
+    };
+
+    $.fn.serializeArray = function (options) {
+        var o = $.extend({
+            checkboxesAsBools: false
+        }, options || {});
+
+        var rselectTextarea = /select|textarea/i;
+        var rinput = /text|hidden|password|search|number/i;
+
+        return this.map(function () {
+            return this.elements ? $.makeArray(this.elements) : this;
+        })
+        .filter(function () {
+            return this.name && !this.disabled &&
+                (this.checked
+                || (o.checkboxesAsBools && this.type === 'checkbox')
+                || rselectTextarea.test(this.nodeName)
+                || rinput.test(this.type));
+            })
+            .map(function (i, elem) {
+                var val = $(this).val();
+                return val == null ?
+                null :
+                $.isArray(val) ?
+                $.map(val, function (val, i) {
+                    return { name: elem.name, value: val };
+                }) :
+                {
+                    name: elem.name,
+                    value: (o.checkboxesAsBools && this.type === 'checkbox') ?
+                        (this.checked ? "true" : "false") :
+                        val
+                };
+            }).get();
+    };
+})(jQuery);
+
+
     $("#form_data").submit(function (event) {
 
-       var userInput = $("#form_data").serializeArray()[0];
+       var outputCount = 3; //the number of output controls
 
+       var userInput = [];
        var outputData = {};
 
-       outputData[userInput["name"]] = userInput["value"];
+       for (iterRead = 0; iterRead < outputCount; iterRead++) {
+         userInput.push($("#form_data").serializeArray(
+           {checkboxesAsBools: true})[iterRead]);
+         outputData[userInput[iterRead]["name"]] = userInput[iterRead]["value"];
 
-       if (outputData[userInput["name"]] == "") {
-         console.log('Error, no data inputed');
-         event.preventDefault();
+         if (outputData[userInput[iterRead]["name"]] == "") {
+           alert('Error, no data inputed');
+           event.preventDefault();
+         }
        }
 
-       else {
+     $.ajax({type:"POST",
+              url:"/controls_feed",
+              data:JSON.stringify(outputData),
+              contentType: "application/json",})
 
-         $.ajax({type:"POST",
-                url:"/controls_feed",
-                data:JSON.stringify(outputData),
-                contentType: "application/json",})
+              .fail(function( ) {
+                 console.log("Error with the html posting of control_feed");
+               });
 
-                .done(function( json ) {
-                  console.log('the data was sent!')
-                });
 
          event.preventDefault();
-       }
     });
 
 
     $(document).ready(function () {
 
-    var valueCount = 3;
+    var inputCount = 3; //the number of different incoming data
+    //for the graph
 
     const dataDisplay = [];
 
-    for (iterDisplay = 0; iterDisplay < valueCount; iterDisplay++) {
+    for (iterDisplay = 0; iterDisplay < inputCount; iterDisplay++) {
        dataDisplay.push({data: [], fill: false, label: ''});
     }
 
@@ -172,7 +229,7 @@ iframe {
         const data = JSON.parse(event.data);
         if (config.data.labels.length === 10) {
           config.data.labels.shift();
-          for (iterShift = 0; iterShift < valueCount; iterShift++) {
+          for (iterShift = 0; iterShift < inputCount; iterShift++) {
             config.data.datasets[iterShift].data.shift();
           }
         }
