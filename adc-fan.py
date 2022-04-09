@@ -19,10 +19,9 @@ chan = AnalogIn(ads, ADS.P0)
 
 #fan setup
 
-fan = 16
+fan = 12
 
 GPIO.setwarnings(False)
-#GPIO.setmode(GPIO.BOARD)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(fan, GPIO.OUT)
 
@@ -46,19 +45,18 @@ while True:
     
     #debug
     print("{:>5}\t{:>5.3f}\t{:>5.3f}".format(chan.value, chan.voltage, tempConv))
+    #print(tempConv, fanOnTemp)
     #GPIO.output(fan, GPIO.LOW)
     
     if (tempConv > fanOnTemp):
         #fan on
         print("temp above 25! turn fan on.")
-        GPIO.output(fan, GPIO.HIGH)
+        GPIO.output(fan, True)
         time.sleep(10)
-        GPIO.cleanup()
+        
     if (tempConv <= fanOnTemp):
         #fan off
         print("temp below 25! turn fan off.")
-        GPIO.output(fan, GPIO.LOW)
-        time.sleep(2)
+        GPIO.output(fan, False)
+        time.sleep(5)
         
-    time.sleep(0.5)
-GPIO.cleanup()
