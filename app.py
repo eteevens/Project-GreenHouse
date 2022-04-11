@@ -1,7 +1,11 @@
 import cv2 #openCV for camera controls
 
-import json #to send the data to be displayed on the graph
+import json #to send the data to be displayed on the graph and recieve data
+#from the controls
 import numpy as np #numpy for random number
+
+from multiprocessing import Process, Pipe #connection between two python scripts,
+#used to pass data to and from sensor scripts
 
 import calendar #calender for the timing controls
 from datetime import datetime #date module for current date, time module
@@ -13,7 +17,7 @@ from flask import Response #functions
 from flask import stream_with_context #for live graph
 from flask import request #for controls
 
-import time #allows the random data to wait 1 sec
+import time #allows the random data to wait 
 
 app = Flask(__name__) #initalize the web application
 

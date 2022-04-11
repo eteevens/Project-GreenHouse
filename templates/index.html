@@ -3,11 +3,6 @@
 
 <head>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><!--The chart.js library-->
-
 <style>
 
 p {
@@ -79,7 +74,7 @@ iframe {
     </div></div>
     <div class=video><img src="{{ url_for('video_feed_route') }}" height=100%></img>
     </div>
-    <div class=time-controls><iframe src="/calendar_feed"></iframe></div>
+    <div class=time-controls><div id="calendar"></div></div>
     <div class=other-controls width=100%>
         <form id="form_data">
           <label for="temp">Temperature:</label>
@@ -94,15 +89,28 @@ iframe {
     </div>
   </div>
 
-  <!--suppress JSUnresolvedLibraryURL -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-  <!--suppress JSUnresolvedLibraryURL -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
-  <!--suppress JSUnresolvedLibraryURL -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+  <!--jquery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+  integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!--xxx library (for the calendar)-->
+
+  <!--twitter bootstrap library (used to read the text stream)-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.min.js"
+  integrity="sha512-UR25UO94eTnCVwjbXozyeVd6ZqpaAE9naiEUBK/A+QDbfSTQFhPGj5lOR6d8tsgbBk84Ggb5A3EkjsOgPRPcKA=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!--chart.js library (for the graph) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"
+  integrity="sha512-QSkVNOCYLtj73J4hbmVoOV6KVZuMluZlioC+trLpewV8qMjsWqlIQvkn1KGX2StWvPMdWGBqim1xlC8krl1EKQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
   <script>
 
-    function generateColor() {
+    function generateColor() { //creates a random hsl value color every time the function
+      //is called and returns it, this makes the graph have different
+      //(but reasonably bright) colored lines
       var hsl = 'hsla(' + Math.floor(Math.random() * 360) + ', 100%, 50%, 1)';
       return hsl;
     }
@@ -156,20 +164,31 @@ iframe {
 
 
     $("#form_data").submit(function (event) {
+      //takes the data from the submission of the form and sends it
+      //via AJAX and JSON to the backend for processing
 
        var outputCount = 3; //the number of output controls
 
-       var userInput = [];
-       var outputData = {};
+       var userInput = []; //reads in the user's input, which needs to be
+       //formatted before being sent
+
+       var outputData = {}; //holds the data to be sent
 
        for (iterRead = 0; iterRead < outputCount; iterRead++) {
          userInput.push($("#form_data").serializeArray(
-           {checkboxesAsBools: true})[iterRead]);
-         outputData[userInput[iterRead]["name"]] = userInput[iterRead]["value"];
+           {checkboxesAsBools: true})[iterRead]); //turns the input from the
+           //submission into an array with {"name":<nameofinput>, "value":<valueofinput>}
+           //elements, corrected for checkbox error
 
-         if (outputData[userInput[iterRead]["name"]] == "") {
+         outputData[userInput[iterRead]["name"]] = userInput[iterRead]["value"];
+         //turns the array into a dictionary with <nameofinput>:<valueofinput> elements
+
+         if (outputData[userInput[iterRead]["name"]] === "") {
+           //if a input has no value, return an alert, note that this returns
+           //a false positive if the checkbox correction (see above) is sending
+           //booleans and not boolean strings
            alert('Error, no data inputed');
-           event.preventDefault();
+           event.preventDefault(); //don't send the data
          }
        }
 
@@ -181,9 +200,11 @@ iframe {
               .fail(function( ) {
                  console.log("Error with the html posting of control_feed");
                });
+               //send the data via AJAX as a JSON string to the relative url
+               // '/controls_feed', if it fails, write to the console
 
-
-         event.preventDefault();
+         event.preventDefault(); //prevent the submission button from attempting
+         //to reload the page to submit the form without AJAX
     });
 
 
@@ -192,12 +213,18 @@ iframe {
     var inputCount = 3; //the number of different incoming data
     //for the graph
 
-    const dataDisplay = [];
+    const dataDisplay = []; //the array of values for the display of the graph,
+    //this will hold the data itself as well as the name of the variables, the
+    //colors, etc.
 
     for (iterDisplay = 0; iterDisplay < inputCount; iterDisplay++) {
-       dataDisplay.push({data: [], fill: false, label: ''});
+      //create an empty data element for every incoming data
+       dataDisplay.push({data: [], label: ''});
     }
 
+    //holds the actual data, note the maping of the generated color to both
+    //the backgroundColor and the borderColor-- this makes the dots and lines
+    // the same generated color, this also holds the dataDisplay value
     const dataInfo = {
       datasets: dataDisplay.map(v => {
         var color = generateColor();
@@ -205,49 +232,77 @@ iframe {
       })
     };
 
+    //hold the graph's general config data (ie. it's a line graph), as well as
+    //the scaling of the graph, which is held at a max 0f 100, this also holds
+    //the dataInfo value
     const config = {
       type: 'line',
       labels: [],
       data: dataInfo,
       options: {
+        fill: false,
+        tension: 0.25,
         responsive: true,
         scales: {
-          y: {beginAtZero: true},
-          yAxes: [{ticks: {max: 100}}],
+          y: {beginAtZero: true,
+              max:100
+            }
         },
         animation: false
       }
     };
 
       const context = document.getElementById('live_graph').getContext('2d');
+      //this is where the graph will be published in the HTML
 
       const live_graph = new Chart(context, config);
+      //this creates the graph, note that it passes in both the config and the
+      //context (where to put it)
 
       const source = new EventSource("/graph_feed");
+      //create a new source of a json text stream (aka, this is where the data
+      //actually is read into the program)
 
       source.onmessage = function (event) {
-        const data = JSON.parse(event.data);
+        //when the source has a new message, run this event
+
+        const data = JSON.parse(event.data); //the data comes from a translating
+        //the JSON sent by the text stream
+
         if (config.data.labels.length === 10) {
-          config.data.labels.shift();
+          //when there are 10 labels on the graph, shift over every datapoint
+          config.data.labels.shift(); //shift over the labels (aka the time values)
           for (iterShift = 0; iterShift < inputCount; iterShift++) {
-            config.data.datasets[iterShift].data.shift();
+            config.data.datasets[iterShift].data.shift(); //shift over the data
           }
         }
-        config.data.labels.push(data.time);
 
-        var iterUpdate = 0;
+        config.data.labels.push(data.time); //add a new label from the text stream
+        // (aka the time values)
 
-        for (let value in data) {
-          if (value != 'time') {
-            config.data.datasets[iterUpdate].data.push(data[value]);
-            if (config.data.datasets[iterUpdate].label != String(value)) {
-              config.data.datasets[iterUpdate].label = String(value);
+        var iterUpdate = 0; //this value will keep track of where to push the
+        //data (ie. dataset[0], dataset[1], etc)
+
+        for (let value in data) { //iterate through all the keys
+          if (value != 'time') { //ignore the key which is 'time', this is the
+            //key for the labels so we ignore it
+
+            if (config.data.datasets[iterUpdate].label == String(value)) {
+              config.data.datasets[iterUpdate].data.push(data[value]);
+              //push the new data from the text stream, only if the label matches
             }
-            iterUpdate++;
+            else if (config.data.datasets[iterUpdate].label != String(value)
+            && config.data.datasets[iterUpdate].label === "") {
+              //if the label != to the value of the string, and the label is empty,
+              //set it equal to the value of the string and push the first bit of data
+              config.data.datasets[iterUpdate].label = String(value);
+              config.data.datasets[iterUpdate].data.push(data[value]);
+            }
+            iterUpdate++; //increment the update location
           }
         }
 
-        live_graph.update();
+        live_graph.update(); //update the graph
       };
     });
 
