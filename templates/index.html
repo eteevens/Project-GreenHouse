@@ -3,67 +3,24 @@
 
 <head>
 
-<style>
+<!--customized jquery timepicker css stylesheet-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.18/jquery.timepicker.min.css"
+integrity="sha512-GgUcFJ5lgRdt/8m5A0d0qEnsoi8cDoF0d6q+RirBPtL423Qsj5cI9OxQ5hWvPi5jjvTLM/YhaaFuIeWCLi6lyQ=="
+crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-p {
-  font-family: verdana;
-}
-
-h1 {
-  font-family: verdana;
-}
-
-img {
-  margin: 0;
-}
-
-iframe {
-  border: 0;
-}
-
-.graphics {
-  grid-area: graph;
-}
-
-.video {
-  grid-area: camera;
-}
-
-.time-controls {
-  grid-area: timing;
-}
-
-.other-controls {
-  grid-area: controls;
-  padding-top: 0%;
-}
-
-.layout-container {
-  display: grid;
-  grid-template-areas:
-  'graph graph graph graph camera camera camera'
-  'graph graph graph graph camera camera camera'
-  'graph graph graph graph camera camera camera'
-  'graph graph graph graph timing timing timing'
-  'graph graph graph graph timing timing timing'
-  'controls controls controls controls timing timing timing';
-  grid-template-columns: 12% 12% 12% 12% 12% 12% 12%;
-  grid-template-rows: 12% 12% 12% 12% 12% 12%;
-  grid-gap: 2%;
-  justify-content: center;
-}
-
-.layout-container > div {
-  text-align: center;
-  outline: 1px outset black;
-  font-family: verdana;
-}
-
-</style>
+<!--main css stylesheet-->
+<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}"/>
 
 </head>
 
 <body>
+
+  <!--change the timepicker to have the same font as everything else-->
+  <style>
+    .ui-timepicker-wrapper {
+      font-family: verdana, serif;
+    }
+  </style>
 
   <!--header and grid layout of the project-->
   <h1 style="text-align:center;"> Project GreenHouse </h1>
@@ -73,17 +30,40 @@ iframe {
       <canvas id="live_graph"></canvas>
     </div></div>
     <div class=video><img src="{{ url_for('video_feed_route') }}" height=100%></img>
+  </div>
+    <div class=time-controls>
+      <form id="schedule_form">
+        <label for="schd_water_drip_en">Enable the Water Drip Schedule:</label>
+        <input type="checkbox" id="schd_water_drip_en" name="schd_water_drip_en"><br>
+
+        <label for="schd_water_drip_time">Run the Water Drip at</label>
+        <input id="schd_water_drip_time" type="text" name="schd_water_drip_time"><br>
+        <input type="number" id="schd_water_drip_days" name="schd_water_drip_days" min="0">
+        <label for="schd_water_drip_days">Times Per Day</label><br>
+
+        <label for "schd_light_en">Enable the Lights Schedule:</label>
+        <input type="checkbox" id="schd_light_en" name="schd_light_en">
+
+        <label for="schd_light_start">Turn On the Lights at</label>
+        <input id="schd_light_start" type="text" name="schd_light_start"><br>
+        <label for="schd_light_stop">and Turn Off the Lights at</label>
+        <input id="schd_light_stop" type="text" name="schd_light_stop">
+
+        <br><input type="submit" value="Submit">
+      </form>
     </div>
-    <div class=time-controls><div id="calendar"></div></div>
-    <div class=other-controls width=100%>
-        <form id="form_data">
-          <label for="temp">Temperature:</label>
-          <input type="number" id="temp" name="temp" min="10"><br>
-          <label for="water_drip">Water Drip:</label>
-          <input type="checkbox" id="water_drip" name="water_drip">
-          <label for="lights">Lights:</label>
-          <input type="checkbox" id="lights" name="lights">
+    <div class=other-controls>
+        <form id="controls_form">
+          <label for="current_temp">Temperature:</label>
+          <input type="number" id="current_temp" name="current_temp" min="10"><br>
+
+          <label for="current_water_drip">Water Drip:</label>
+          <input type="checkbox" id="current_water_drip" name="current_water_drip">
+
+          <label for="current_lights">Lights:</label>
+          <input type="checkbox" id="current_lights" name="current_lights">
           <br>
+
           <input type="submit" value="Submit">
         </form>
     </div>
@@ -94,7 +74,10 @@ iframe {
   integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
   crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-  <!--xxx library (for the calendar)-->
+  <!--jquery timepicker library (for the scheduler)-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.18/jquery.timepicker.min.js"
+  integrity="sha512-WHnaxy6FscGMvbIB5EgmjW71v5BCQyz5kQTcZ5iMxann3HczLlBHH5PQk7030XmmK5siar66qzY+EJxKHZTPEQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <!--twitter bootstrap library (used to read the text stream)-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.min.js"
@@ -115,98 +98,169 @@ iframe {
       return hsl;
     }
 
-    /**
- * Fixes the issue with checkbox forms using serializeArray which ordinarily
- * only respond when toggled on.
- *
- * @see https://ourcodeworld.com/articles/read/1030/how-to-change-the-on-and-off-values-to-boolean-true-or-false-from-checkboxes-with-serialization-with-jquery-serialize-and-serializearray
- */
-(function ($) {
-    $.fn.serialize = function (options) {
-        return $.param(this.serializeArray(options));
-    };
 
-    $.fn.serializeArray = function (options) {
-        var o = $.extend({
-            checkboxesAsBools: false
-        }, options || {});
+        //timepicker for the water drip time
+        $('#schd_water_drip_time').timepicker({'scrollDefault':'now',
+                                               'orientation':'tl',
+                                               'listWidth': 1,
+                                               'step': 15,
+                                               'timeFormat': 'h:i a'});
 
-        var rselectTextarea = /select|textarea/i;
-        var rinput = /text|hidden|password|search|number/i;
+        //timepicker for the light start time
+        $('#schd_light_start').timepicker({'scrollDefault':'now',
+                                              'orientation':'tl',
+                                              'listWidth': 1,
+                                              'step': 15,
+                                              'timeFormat': 'h:i a'});
 
-        return this.map(function () {
-            return this.elements ? $.makeArray(this.elements) : this;
-        })
-        .filter(function () {
-            return this.name && !this.disabled &&
-                (this.checked
-                || (o.checkboxesAsBools && this.type === 'checkbox')
-                || rselectTextarea.test(this.nodeName)
-                || rinput.test(this.type));
+        //timepicker for the light stop time
+        $('#schd_light_stop').timepicker({'scrollDefault':'now',
+                                              'orientation':'tl',
+                                              'listWidth': 1,
+                                              'step': 15,
+                                              'timeFormat': 'h:i a'});
+
+    /*
+     * Fixes the issue with checkbox forms using serializeArray which ordinarily
+     * only respond when toggled on.
+     *
+     * @see https://ourcodeworld.com/articles/read/1030/how-to-change-the-on-and-off-values-to-boolean-true-or-false-from-checkboxes-with-serialization-with-jquery-serialize-and-serializearray
+     */
+    (function ($) {
+        $.fn.serialize = function (options) {
+            return $.param(this.serializeArray(options));
+        };
+
+        $.fn.serializeArray = function (options) {
+            var o = $.extend({
+                checkboxesAsBools: false
+            }, options || {});
+
+            var rselectTextarea = /select|textarea/i;
+            var rinput = /text|hidden|password|search|number/i;
+
+            return this.map(function () {
+                return this.elements ? $.makeArray(this.elements) : this;
             })
-            .map(function (i, elem) {
-                var val = $(this).val();
-                return val == null ?
-                null :
-                $.isArray(val) ?
-                $.map(val, function (val, i) {
-                    return { name: elem.name, value: val };
-                }) :
-                {
-                    name: elem.name,
-                    value: (o.checkboxesAsBools && this.type === 'checkbox') ?
-                        (this.checked ? "true" : "false") :
-                        val
-                };
-            }).get();
-    };
-})(jQuery);
+            .filter(function () {
+                return this.name && !this.disabled &&
+                    (this.checked
+                    || (o.checkboxesAsBools && this.type === 'checkbox')
+                    || rselectTextarea.test(this.nodeName)
+                    || rinput.test(this.type));
+                })
+                .map(function (i, elem) {
+                    var val = $(this).val();
+                    return val == null ?
+                    null :
+                    $.isArray(val) ?
+                    $.map(val, function (val, i) {
+                        return { name: elem.name, value: val };
+                    }) :
+                    {
+                        name: elem.name,
+                        value: (o.checkboxesAsBools && this.type === 'checkbox') ?
+                            (this.checked ? "true" : "false") :
+                            val
+                    };
+                }).get();
+        };
+    })(jQuery);
+
+        $("#schedule_form").submit(function (event) {
+
+          var scheduleCount = 6; //the number of scheduler outputs
+
+          var userScheduleInput = []; //reads in the user's input, which needs to be
+          //formatted before being sent
+
+          var schedulerData = {}; //holds the data to be sent
+
+          for (iterSchdRead = 0; iterSchdRead < scheduleCount; iterSchdRead++) {
+            userScheduleInput.push($("#schedule_form").serializeArray(
+              {checkboxesAsBools: true})[iterSchdRead]); //turns the input from the
+              //submission into an array with {"name":<nameofinput>, "value":<valueofinput>}
+              //elements, corrected for checkbox error
+
+            console.log(userScheduleInput[iterSchdRead]);
+
+            schedulerData[userScheduleInput[iterSchdRead]["name"]]
+            = userScheduleInput[iterSchdRead]["value"];
+            //turns the array into a dictionary with <nameofinput>:<valueofinput> elements
+
+            if (schedulerData[userScheduleInput[iterSchdRead]["name"]] === "") {
+              //if a input has no value, return an alert, note that this returns
+              //a false positive if the checkbox correction (see above) is sending
+              //booleans and not boolean strings
+              alert('Error, no data inputed');
+              event.preventDefault(); 
+              return; //do not send data if there is none to send
+            }
+          }
+
+          $.ajax({type:"POST",
+                   url:"/controls_feed",
+                   data:JSON.stringify(schedulerData),
+                   contentType: "application/json",})
+
+                   .fail(function( ) {
+                      console.log("Error with the html posting of calendar_feed");
+                    });
+                    //send the data via AJAX as a JSON string to the relative url
+                    // '/controls_feed', if it fails, write to the console
+
+          event.preventDefault(); //prevent the submission button from attempting
+          //to reload the page to submit the form without AJAX
+
+        });
 
 
-    $("#form_data").submit(function (event) {
-      //takes the data from the submission of the form and sends it
-      //via AJAX and JSON to the backend for processing
+        $("#controls_form").submit(function (event) {
+          //takes the data from the submission of the form and sends it
+          //via AJAX and JSON to the backend for processing
 
-       var outputCount = 3; //the number of output controls
+           var outputCount = 3; //the number of controls outputs
 
-       var userInput = []; //reads in the user's input, which needs to be
-       //formatted before being sent
+           var userControlsInput = []; //reads in the user's input, which needs to be
+           //formatted before being sent
 
-       var outputData = {}; //holds the data to be sent
+           var controlsData = {}; //holds the data to be sent
 
-       for (iterRead = 0; iterRead < outputCount; iterRead++) {
-         userInput.push($("#form_data").serializeArray(
-           {checkboxesAsBools: true})[iterRead]); //turns the input from the
-           //submission into an array with {"name":<nameofinput>, "value":<valueofinput>}
-           //elements, corrected for checkbox error
+           controlsReadLoop:
+           for (iterControlsRead = 0; iterControlsRead < outputCount; iterControlsRead++) {
+             userControlsInput.push($("#controls_form").serializeArray(
+               {checkboxesAsBools: true})[iterControlsRead]); //turns the input from the
+               //submission into an array with {"name":<nameofinput>, "value":<valueofinput>}
+               //elements, corrected for checkbox error
 
-         outputData[userInput[iterRead]["name"]] = userInput[iterRead]["value"];
-         //turns the array into a dictionary with <nameofinput>:<valueofinput> elements
+             controlsData[userControlsInput[iterControlsRead]["name"]]
+             = userControlsInput[iterControlsRead]["value"];
+             //turns the array into a dictionary with <nameofinput>:<valueofinput> elements
 
-         if (outputData[userInput[iterRead]["name"]] === "") {
-           //if a input has no value, return an alert, note that this returns
-           //a false positive if the checkbox correction (see above) is sending
-           //booleans and not boolean strings
-           alert('Error, no data inputed');
-           event.preventDefault(); //don't send the data
-         }
-       }
+             if (controlsData[userControlsInput[iterControlsRead]["name"]] === "") {
+               //if a input has no value, return an alert, note that this returns
+               //a false positive if the checkbox correction (see above) is sending
+               //booleans and not boolean strings
+               alert('Error, no data inputed');
+               event.preventDefault();
+               return; //do not send data if there is none to send
+             }
+           }
 
-     $.ajax({type:"POST",
-              url:"/controls_feed",
-              data:JSON.stringify(outputData),
-              contentType: "application/json",})
+         $.ajax({type:"POST",
+                  url:"/controls_feed",
+                  data:JSON.stringify(controlsData),
+                  contentType: "application/json",})
 
-              .fail(function( ) {
-                 console.log("Error with the html posting of control_feed");
-               });
-               //send the data via AJAX as a JSON string to the relative url
-               // '/controls_feed', if it fails, write to the console
+                  .fail(function( ) {
+                     console.log("Error with the html posting of control_feed");
+                   });
+                   //send the data via AJAX as a JSON string to the relative url
+                   // '/controls_feed', if it fails, write to the console
 
-         event.preventDefault(); //prevent the submission button from attempting
-         //to reload the page to submit the form without AJAX
-    });
-
+             event.preventDefault(); //prevent the submission button from attempting
+             //to reload the page to submit the form without AJAX
+        });
 
     $(document).ready(function () {
 

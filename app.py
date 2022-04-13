@@ -17,7 +17,7 @@ from flask import Response #functions
 from flask import stream_with_context #for live graph
 from flask import request #for controls
 
-import time #allows the random data to wait 
+import time #allows the random data to wait
 
 app = Flask(__name__) #initalize the web application
 
@@ -76,20 +76,6 @@ def graph_display():
         yield f"data:{json_data}\n\n"
         time.sleep(0.5)
 
-
-def calendar_display():
-    #the calendar display for the page
-    today = datetime.today() #get current date
-    cal = calendar.HTMLCalendar(0) #make a calendar
-
-    cal_html = str(cal.formatmonth(today.year, today.month))
-
-    calendar_file = open("templates/temp-calendar.html", "w") #write the calendar
-    #to a file
-    calendar_file.write(cal_html)
-    calendar_file.close()
-
-
 @app.route('/') #index of the GUI (the viewable page)
 def index():
     return render_template('index.html')
@@ -106,15 +92,16 @@ def graph_feed_route():
     response.headers["X-Accel-Buffering"] = "no"
     return response
 
-@app.route('/calendar_feed') #calendar feed route
+@app.route('/calendar_feed', methods=["POST"]) #calendar feed route
 def calendar_feed_route():
-    calendar_display()
-    return render_template('temp-calendar.html')
+    retrieve_cal = request.get_json()
+    print(retrieve_cal)
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route('/controls_feed', methods=["POST"]) #controls feed route
 def controls_feed_route():
-    retrieve = request.get_json()
-    print(retrieve)
+    retrieve_output = request.get_json()
+    print(retrieve_output)
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 if __name__ == "__main__":

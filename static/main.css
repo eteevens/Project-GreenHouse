@@ -1,0 +1,58 @@
+/***
+* main.css for the Project GreenHouse
+* by Erin Teevens
+***/
+
+body {
+  font-family: verdana, serif;
+}
+
+img {
+  margin: 0;
+}
+
+iframe {
+  border: 0;
+}
+
+.ui-timepicker-wrapper.theme1 {
+  margin-top: 100px;
+  font-family: verdana, serif;
+}
+
+.graphics {
+  grid-area: graph;
+}
+
+.video {
+  grid-area: camera;
+}
+
+.time-controls {
+  grid-area: timing;
+}
+
+.other-controls {
+  grid-area: controls;
+  padding-top: 0%;
+}
+
+.layout-container {
+  display: grid;
+  grid-template-areas:
+  'graph graph graph graph camera camera camera'
+  'graph graph graph graph camera camera camera'
+  'graph graph graph graph camera camera camera'
+  'graph graph graph graph camera camera camera'
+  'graph graph graph graph camera camera camera'
+  'controls controls controls controls timing timing timing';
+  grid-template-columns: 12% 12% 12% 12% 12% 12% 12%;
+  grid-template-rows: 12% 12% 12% 12% 12% 12%;
+  grid-gap: 2%;
+  justify-content: center;
+}
+
+.layout-container > div {
+  text-align: center;
+  outline: 1px outset black;
+}
