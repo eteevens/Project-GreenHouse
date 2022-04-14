@@ -9,28 +9,38 @@ from datetime import datetime #date module for current date, time module
 
 import time #allows the random data to wait
 
-url = "http://127.0.0.1:5000/read_client"
+url = "http://127.0.0.1:5000" #address of the server
 
-def generateData():
+write_to_app = url + "/read_client" #server page for read
+read_from_app = url + "/write_client" #server page for write
 
-    value1 = 0
+checkRateGraph = 0.5 #how often to check the graph, NEEDS to be same as server
+
+def send_and_recieve():
+
+    value1 = 0 #triangle wave fake data
 
     while True:
         value1 = (value1 + 15) % 100
-        value2 = int(np.random.rand() * 100)
+        value2 = int(np.random.rand() * 100) #random fake data
         value3 = int(np.random.rand() * 100)
 
         data_to_send = {'time':datetime.now().strftime('%H:%M:%S')}
+        #adds the time to the json to be sent, this MUST be sent because
+        #that is what fills out the y-axis of the graph
 
-        data_to_send['Temperature (in F)'] = value1
+        data_to_send['Temperature (in F)'] = value1 #name of the data (to be displayed) : value
         data_to_send['Humidity'] = value2
         data_to_send['Light Level'] = value3
 
-        json_data = json.dumps(data_to_send)
+        json_data = json.dumps(data_to_send) #turns the data into a JSON string
 
-        r = requests.post(url, json=json_data)
+        requests.post(write_to_app, json=json_data) #posts data to the write address
+        r = requests.get(read_from_app, timeout=10) #reads from the read address
 
-        time.sleep(1)
+        print(r.json()) #print out what is read
+
+        time.sleep(checkRateGraph) #wait (for graph sync)
 
 if __name__ == "__main__":
-    generateData()
+    send_and_recieve()

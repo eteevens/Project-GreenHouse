@@ -84,8 +84,13 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
         <label for="schd_water_drip_time">Run the Water Drip at</label>
         <input id="schd_water_drip_time" type="text" name="schd_water_drip_time"><br>
-        <input type="number" id="schd_water_drip_days" name="schd_water_drip_days" min="0">
-        <label for="schd_water_drip_days">Times Per Day</label><br><br>
+        <label for="schd_water_drip_duration">For</label>
+        <input type="number" id="schd_water_drip_duration" name="schd_water_drip_duration" min="0">
+        <label for="schd_water_drip_duration">Seconds</label><br>
+        <label for="schd_water_drip_repeat">Every</label>
+        <input type="number" id="schd_water_drip_repeat" name="schd_water_drip_repeat" min="1">
+        <label for="schd_water_drip_repeat">Day(s)</label>
+        <br><br>
 
         <label for "schd_light_en">Enable the Lights Schedule:</label>
         <input type="checkbox" id="schd_light_en" name="schd_light_en"><br>
@@ -212,7 +217,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
       $("#schedule_form").submit(function (event) {
 
-        var scheduleCount = 6; //the number of scheduler outputs
+        var scheduleCount = 7; //the number of scheduler outputs
 
         var userScheduleInput = []; //reads in the user's input, which needs to be
         //formatted before being sent
@@ -242,7 +247,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         }
 
         $.ajax({type:"POST",
-                 url:"/controls_feed",
+                 url:"/calendar_feed",
                  data:JSON.stringify(schedulerData),
                  contentType: "application/json",})
 
