@@ -17,7 +17,9 @@ from flask import Response #functions
 from flask import stream_with_context #for live graph
 from flask import request #for controls
 
-import time #allows the random data to wait 
+import time #allows the random data to wait
+
+from socketServer import server
 
 app = Flask(__name__) #initalize the web application
 
@@ -57,23 +59,15 @@ def graph_display():
 
     #make the graph figure
 
-    value1 = 0
+    Host = "127.0.0.1"
+    Port = 5500
 
     while True:
-        value1 = (value1 + 15) % 100
-        value2 = int(np.random.rand() * 100)
-        value3 = int(np.random.rand() * 100)
 
-        data_to_send = {'time':datetime.now().strftime('%H:%M:%S')}
+        graph_data = server(Host, Port)
 
-        data_to_send['Temperature (in F)'] = value1
-        data_to_send['Humidity'] = value2
-        data_to_send['Light Level'] = value3
+        yield f'data:{graph_data}\n\n'
 
-        json_data = json.dumps(data_to_send)
-
-
-        yield f"data:{json_data}\n\n"
         time.sleep(0.5)
 
 
