@@ -105,11 +105,18 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
     </div>
     <div class=other-controls width=100%>
         <form id="controls_form">
-          <label for="current_temp">Temperature:</label>
-          <input type="number" id="current_temp" name="current_temp" min="10"><br>
+          <label for="current_temp_high">Max Temperature:</label>
+          <input type="number" id="current_temp_high" name="current_temp_high" min="10">
+          <label for="current_temp_low">Min Temperature:</label>
+          <input type="number" id="current_temp_low" name="current_temp_low" min="10">
+          <br>
 
-          <label for="current_water_drip">Water Drip:</label>
-          <input type="checkbox" id="current_water_drip" name="current_water_drip">
+          <label for="current_water_drip_en">Enable the Water Drip:</label>
+          <input type="checkbox" id="current_water_drip_en" name="current_water_drip_en">
+          <label for="current_water_drip_duration">For</label>
+          <input type="number" id="current_water_drip_duration" name="current_water_drip_duration" min="0">
+          <label for="current_water_drip_duration">Seconds</label>
+          <br>
 
           <label for="current_lights">Lights:</label>
           <input type="checkbox" id="current_lights" name="current_lights">
@@ -267,7 +274,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         //takes the data from the submission of the form and sends it
         //via AJAX and JSON to the backend for processing
 
-         var outputCount = 3; //the number of controls outputs
+         var outputCount = 5; //the number of controls outputs
 
          var userControlsInput = []; //reads in the user's input, which needs to be
          //formatted before being sent
@@ -310,7 +317,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
            //to reload the page to submit the form without AJAX
       });
 
-    var inputCount = 3; //the number of different incoming data
+    var inputCount = 7; //the number of different incoming data
     //for the graph
 
     const dataDisplay = []; //the array of values for the display of the graph,
