@@ -21,20 +21,20 @@ graphFrame = {} #the current graph frame, empty initally
 graphFrameSem = Semaphore()
 
 #the current controls frame, initalized to standard settings to prevent errors
-controlsFrame = {'current_temp_high': '15',
-                 'current_temp_low': '10',
-                 'current_water_drip_en': 'False',
-                 'current_water_drip_duration': '0',
-                 'current_lights': 'False'}
+controlsFrame = {'current_temp_high': 15,
+                 'current_temp_low': 10,
+                 'current_water_drip_en': False,
+                 'current_water_drip_duration': 0,
+                 'current_lights': False}
 controlsFrameSem = Semaphore()
 
 #the scheduler controls frame, initalized to standard settings to prevent errors
-schedulerFrame = {'schd_water_drip_en': 'False',
+schedulerFrame = {'schd_water_drip_en': False,
                   'schd_water_drip_time': '12:00 am',
-                  'schd_water_drip_duration': '0',
-                  'schd_water_drip_repeat': '1',
-                  'schd_water_drip_inf': 'False',
-                  'schd_light_en': 'False',
+                  'schd_water_drip_duration': 0,
+                  'schd_water_drip_repeat': 1,
+                  'schd_water_drip_inf': False,
+                  'schd_light_en': False,
                   'schd_light_start': '12:00 am',
                   'schd_light_stop': '12:15 am'}
 schedulerFrameSem = Semaphore()
@@ -92,23 +92,52 @@ def graph_display(): #read in graph data to display
 
 
 def send_controls_data(): #send the controls data
-    while True:
-        controlsFrameSem.acquire()
-        controls_data = controlsFrame #get the current frame of the controls data
-        controlsFrameSem.release()
+    controlsFrameSem.acquire()
+    controls_data = controlsFrame.copy() #get the current frame of the controls data
+    controlsFrameSem.release()
 
-        return json.dumps(controls_data)
+    return json.dumps(controls_data)
+
+def convert24(input): #convert time to a 24 hour format, note that this assumes
+#the input is of form HH:MM pm/am
+
+    if (input[-2:] == 'am' or input[-2:] == 'AM') and input[:2] == "12":
+        #it's between midnight and 1 am so 00:MM needs to be returned
+        return "00" + input[2:-3]
+
+    elif (input[-2:] == 'am' or input[-2] == 'AM'):
+        #it's in the morning, no need to change anything
+        return input[:-3]
+
+    elif (input[-2:] == 'pm' or input[-2] == "PM") and input[:2] == "12":
+        #it's between noon and 1 pm, no need to change anything
+        return input[:-3]
+
+    elif (input[-2:] == 'pm' or input[-2] == "PM"):
+        #it's afternoon and 1 pm or later, need to add 12 hours
+        return str(int(input[:2]) + 12) + input[2:-3]
+
+    else:
+        #if it doesn't include am/pm, it's not the right format 
+        print('error, incorrect format')
+        return input
+
 
 def send_schd_data(): #send the scheduler data
-    while True:
-        schedulerFrameSem.acquire()
-        schd_data = schedulerFrame #get the current frame of the schd data
-        schedulerFrameSem.release()
+    schedulerFrameSem.acquire()
+    schd_data = schedulerFrame.copy() #get the current frame of the schd data
+    schedulerFrameSem.release()
 
-        if schd_data['schd_water_drip_time'] != '':
-            print(schd_data['schd_water_drip_time'])
+    if schd_data['schd_water_drip_time'] != '':
+        schd_data['schd_water_drip_time'] = convert24(str(schd_data['schd_water_drip_time']))
 
-        return json.dumps(schd_data)
+    if schd_data['schd_light_start'] != '':
+        schd_data['schd_light_start'] = convert24(str(schd_data['schd_light_start']))
+
+    if schd_data['schd_light_stop'] != '':
+        schd_data['schd_light_stop'] = convert24(str(schd_data['schd_light_stop']))
+
+    return json.dumps(schd_data)
 
 @app.route('/') #index of the GUI (the viewable page)
 def index():
