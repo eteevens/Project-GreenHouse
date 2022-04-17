@@ -6,16 +6,11 @@ import numpy as np #numpy for random number
 
 from threading import Semaphore #semaphore, protects the frame data
 
-from datetime import datetime #date module for current date, time module
-#for the current time for the graph
-
 from flask import Flask #flask main
 from flask import render_template #html pages
 from flask import Response #functions
 from flask import stream_with_context #for live graph
 from flask import request #for controls and scheduler
-
-import time #allows the random data to wait
 
 graphFrame = {} #the current graph frame, empty initally
 graphFrameSem = Semaphore()
@@ -99,28 +94,38 @@ def send_controls_data(): #send the controls data
     return json.dumps(controls_data)
 
 def convert24(input): #convert time to a 24 hour format, note that this assumes
-#the input is of form HH:MM pm/am
+#the input is of form HH:MM pm/am with a leading 0 in the hours
 
-    if (input[-2:] == 'am' or input[-2:] == 'AM') and input[:2] == "12":
-        #it's between midnight and 1 am so 00:MM needs to be returned
-        return "00" + input[2:-3]
+    if input[:2].isdigit() and input[3:5].isdigit(): #check to make sure the
+    #inputted values for HH and MM are numbers
+        if int(input[:2]) <= 12 and int(input[3:5]) <= 59:
+            #check to make sure the HH are in 12 hour format and that the
+            #minutes don't exceed possible values
 
-    elif (input[-2:] == 'am' or input[-2] == 'AM'):
-        #it's in the morning, no need to change anything
-        return input[:-3]
-
-    elif (input[-2:] == 'pm' or input[-2] == "PM") and input[:2] == "12":
-        #it's between noon and 1 pm, no need to change anything
-        return input[:-3]
-
-    elif (input[-2:] == 'pm' or input[-2] == "PM"):
-        #it's afternoon and 1 pm or later, need to add 12 hours
-        return str(int(input[:2]) + 12) + input[2:-3]
-
+            if input[-2:].lower() == 'am' and input[:2] == "12":
+                #it's between midnight and 1 am so 00:MM needs to be returned
+                return "00" + input[2:-3]
+            elif input[-2:].lower() == 'am':
+                #it's in the morning, no need to change anything
+                return input[:-3]
+            elif input[-2:].lower() == 'pm' and input[:2] == "12":
+                #it's between noon and 1 pm, no need to change anything
+                return input[:-3]
+            elif input[-2:].lower() == 'pm':
+                #it's afternoon and 1 pm or later, need to add 12 hours
+                return str(int(input[:2]) + 12) + input[2:-3]
+            else:
+                #if it fails any of the previous checks, it's not in the right format
+                print('error, incorrect format')
+                return 0
+        else:
+            #if it fails any of the previous checks, it's not in the right format
+            print('error, incorrect format')
+            return 0
     else:
-        #if it doesn't include am/pm, it's not the right format 
+        #if it fails any of the previous checks, it's not in the right format
         print('error, incorrect format')
-        return input
+        return 0
 
 
 def send_schd_data(): #send the scheduler data
