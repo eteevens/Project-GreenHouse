@@ -12,13 +12,18 @@ import time #allows the random data to wait
 url = "http://127.0.0.1:5000" #address of the server
 
 write_to_app = url + "/read_client" #server page for read
-read_from_app = url + "/write_client" #server page for write
+read_controls_from_app = url + "/write_client_controls"
+#server page for writing controls
+read_schd_from_app = url + "/write_client_schd"
+#server page for writing scheduler
 
 checkRateGraph = 0.5 #how often to write to the graph (temp value)
 
 def send_and_recieve():
 
     value1 = 0 #triangle wave fake data
+
+    counter = 0 #for when the data should be read from the app, temp value
 
     while True:
         value1 = (value1 + 15) % 100
@@ -44,11 +49,22 @@ def send_and_recieve():
         json_data = json.dumps(data_to_send) #turns the data into a JSON string
 
         requests.post(write_to_app, json=json_data) #posts data to the write address
-        r = requests.get(read_from_app, timeout=10) #reads from the read address
 
-        print(r.json()) #print out what is read
+        if counter == 6:
+            controls_data = requests.get(read_controls_from_app, timeout=10)
+            #reads from the read from controls address
+
+            print(controls_data.json()) #print out what is read
+
+            schd_data = requests.get(read_schd_from_app, timeout=10)
+            #reads from the read from scheduler address
+
+            print(schd_data.json()) #print out what is read
+
+            counter = 0
 
         time.sleep(checkRateGraph) #wait
-        
+        counter = counter + 1 #increment the counter
+
 if __name__ == "__main__":
     send_and_recieve()

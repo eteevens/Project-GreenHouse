@@ -12,7 +12,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <body>
 
-  <!--change the timepicker to have the same font as everything else-->
+  <!--main css style for the GUI, note that the timepicker's font is set to match the rest-->
   <style>
     body, .ui-timepicker-wrapper {
       font-family: verdana, serif;
@@ -24,11 +24,6 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     iframe {
       border: 0;
-    }
-
-    .ui-timepicker-wrapper.theme1 {
-      margin-top: 100px;
-      font-family: verdana, serif;
     }
 
     .graphics {
@@ -87,9 +82,11 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         <label for="schd_water_drip_duration">For</label>
         <input type="number" id="schd_water_drip_duration" name="schd_water_drip_duration" min="0">
         <label for="schd_water_drip_duration">Seconds</label><br>
-        <label for="schd_water_drip_repeat">Every</label>
+        <label for="schd_water_drip_repeat">Repeat for</label>
         <input type="number" id="schd_water_drip_repeat" name="schd_water_drip_repeat" min="1">
-        <label for="schd_water_drip_repeat">Day(s)</label>
+        <label for="schd_water_drip_repeat">Day(s) or</label>
+        <label for="schd_water_drip_inf"> Repeat Always: </label>
+        <input type="checkbox" id="schd_water_drip_inf" name="schd_water_drip_inf">
         <br><br>
 
         <label for "schd_light_en">Enable the Lights Schedule:</label>
@@ -215,7 +212,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
                   {
                       name: elem.name,
                       value: (o.checkboxesAsBools && this.type === 'checkbox') ?
-                          (this.checked ? "true" : "false") :
+                          (this.checked ? "True" : "False") :
                           val
                   };
               }).get();
@@ -224,7 +221,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
       $("#schedule_form").submit(function (event) {
 
-        var scheduleCount = 7; //the number of scheduler outputs
+        var scheduleCount = 8; //the number of scheduler outputs
 
         var userScheduleInput = []; //reads in the user's input, which needs to be
         //formatted before being sent

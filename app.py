@@ -6,7 +6,6 @@ import numpy as np #numpy for random number
 
 from threading import Semaphore #semaphore, protects the frame data
 
-import calendar #calender for the timing controls
 from datetime import datetime #date module for current date, time module
 #for the current time for the graph
 
@@ -18,11 +17,27 @@ from flask import request #for controls and scheduler
 
 import time #allows the random data to wait
 
-graphFrame = {} #the current graph frame
+graphFrame = {} #the current graph frame, empty initally
 graphFrameSem = Semaphore()
 
-controlsFrame = {} #the current controls frame
+#the current controls frame, initalized to standard settings to prevent errors
+controlsFrame = {'current_temp_high': '15',
+                 'current_temp_low': '10',
+                 'current_water_drip_en': 'False',
+                 'current_water_drip_duration': '0',
+                 'current_lights': 'False'}
 controlsFrameSem = Semaphore()
+
+#the scheduler controls frame, initalized to standard settings to prevent errors
+schedulerFrame = {'schd_water_drip_en': 'False',
+                  'schd_water_drip_time': '12:00 am',
+                  'schd_water_drip_duration': '0',
+                  'schd_water_drip_repeat': '1',
+                  'schd_water_drip_inf': 'False',
+                  'schd_light_en': 'False',
+                  'schd_light_start': '12:00 am',
+                  'schd_light_stop': '12:15 am'}
+schedulerFrameSem = Semaphore()
 
 newDataFlag = False #is there a new data? If true, set the flag
 newDataFlagSem = Semaphore()
@@ -84,6 +99,17 @@ def send_controls_data(): #send the controls data
 
         return json.dumps(controls_data)
 
+def send_schd_data(): #send the scheduler data
+    while True:
+        schedulerFrameSem.acquire()
+        schd_data = schedulerFrame #get the current frame of the schd data
+        schedulerFrameSem.release()
+
+        if schd_data['schd_water_drip_time'] != '':
+            print(schd_data['schd_water_drip_time'])
+
+        return json.dumps(schd_data)
+
 @app.route('/') #index of the GUI (the viewable page)
 def index():
     return render_template('index.html')
@@ -102,8 +128,13 @@ def graph_feed_route():
 
 @app.route('/calendar_feed', methods=["POST"]) #calendar feed route
 def calendar_feed_route():
-    retrieve_cal = request.get_json()
-    print(retrieve_cal)
+    retrieve_cal = request.get_json() #get the user's input from the GUI
+
+    schedulerFrameSem.acquire()
+    global schedulerFrame
+    schedulerFrame = retrieve_cal
+    schedulerFrameSem.release()
+
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 @app.route('/controls_feed', methods=["POST"]) #controls feed route
@@ -133,9 +164,13 @@ def read_client_route():
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
-@app.route('/write_client') #write data to the client
-def write_client_route():
+@app.route('/write_client_controls') #write controls to the client
+def write_client_controls_route():
     return Response(send_controls_data(), mimetype='application/json')
+
+@app.route('/write_client_schd') #write scheduler data to the client
+def write_client_schd_route():
+    return Response(send_schd_data(), mimetype='application/json')
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port='5000', debug=True, threaded=True, use_reloader=False)
