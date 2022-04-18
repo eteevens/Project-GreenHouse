@@ -12,7 +12,8 @@ from adafruit_ads1x15.analog_in import AnalogIn
 
 ti2c = board.I2C()
 uv = VEML6070(ti2c)
-    # HUMIDITY SENSOR- Create library object using our Bus I2C port
+
+# HUMIDITY SENSOR- Create library object using our Bus I2C port
 humidSen = adafruit_si7021.SI7021(ti2c)
 
 print("DEMO CODE")
@@ -59,14 +60,14 @@ for i in range(10):
     risk_level = uv.get_index(uv_raw)
         
     print("Temperature = {:>5.2f}°C".format(tempConv))
-    print("Humidity = {:>5.2f}%".format(humidSen.temperature))
+    print("Humidity = {:>5.2f}%".format(sensor.relative_humidity))
     print('UV Light Level: {0}'.format(uv_raw))
 
 #turn on water pump for 7 sec
 while True:
     print("PUMP")
     pump.value = False
-    time.sleep(7)
+    time.sleep(5)
     pump.value = True
     time.sleep(5)
     break

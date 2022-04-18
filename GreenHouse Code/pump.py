@@ -1,18 +1,26 @@
-import RPi.GPIO as GPIO
+import board 
+#import RPi.GPIO as GPIO
 import time
+import neopixel
+import cv2
+import digitalio
+import busio
+import adafruit_ads1x15.ads1115 as ADS
+import adafruit_si7021
+from adafruit_veml6070 import VEML6070
+from adafruit_ads1x15.analog_in import AnalogIn
 
-pump = 32
+pump = digitalio.DigitalInOut(board.D12)
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(pump, GPIO.OUT)
+pump.direction = digitalio.Direction.OUTPUT
 
-for i in range(2):
-    GPIO.output(pump, GPIO.HIGH)
-    time.sleep(10)
-    GPIO.output(pump, GPIO.LOW)
+while True:
+    print("PUMP")
+    pump.value = False
     time.sleep(5)
-
-GPIO.cleanup()
+    pump.value = True
+    time.sleep(5)
+    break
 
 #0.25 oz per second
 
