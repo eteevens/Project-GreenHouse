@@ -144,12 +144,13 @@ while True:
 
     #Scheduled Inputs to process
     scWaterDripEn = schd_water_drip_en #bool
-    scWaterDripDur = sch_water_drip_time #time in 24h
+    scWaterDripTime = sch_water_drip_time #time in 24h
+    scWaterDripDur = sch_water_drip_duration
     schd_water_drip_repeat #int
     schd_water_drip_inf #bool
-    schd_light_en #bool
-    schd_light_start #time in 24h
-    schd_light_stop #time in 24h
+    scLightEn = schd_light_en #bool
+    scLightStart = schd_light_start #time in 24h
+    scLightStop = schd_light_stop #time in 24h
     
     
     #read values from pi
@@ -160,10 +161,10 @@ while True:
     #basic controls- not in scheduler
     
     #fan controls
-    if ((currentTemp >= currTempHigh) || (currentHumid >= currHumidHigh) || (currFan = True)):
+    if ((currentTemp >= currTempHigh) || (currentHumid >= currHumidHigh) || (currFan == True)):
         run_fan()
         
-    if ((currentTemp <= curTempLow)v|| (currFan = False)):
+    if ((currentTemp <= curTempLow)v|| (currFan == False)):
         stop_fan()
         
     #Heat controls
@@ -175,15 +176,33 @@ while True:
         stop_heat()
         
     #Water drip controls
-    if (currDripEn = True):
-        run_pump(currDripDur)
+    if (currDripEn == True):
+        run_pump_duration(currDripDur)
         
     #Light controls
-    if (currLight = True):
+    if (currLight == True):
         run_lights()
         
-    if (currLight = False):
+    if (currLight == False):
         stop_lights()
         
-        
+    #time scheduler
+    currentTime = get_current_time()
+    
+    #water pump
+    if(scWaterDripEn == True):    
+        if(currentTime == scWaterDripTime):
+            run_pump_duration(scWaterDripDur)
+            
+        #schedule when to repeat
+    
+    #lights
+    if(scLightEn == True):    
+        if(currentTime == scLightStart):
+            run_lights()
+        if(currentTime == scLightStop):
+            stop_lights()
+            
+    
+    
         
