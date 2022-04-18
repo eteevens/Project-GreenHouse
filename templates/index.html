@@ -87,16 +87,15 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         <label for="schd_water_drip_repeat">Day(s) or</label>
         <label for="schd_water_drip_inf"> Repeat Always: </label>
         <input type="checkbox" id="schd_water_drip_inf" name="schd_water_drip_inf">
-        <br><br>
-
-        <label for "schd_light_en">Enable the Lights Schedule:</label>
-        <input type="checkbox" id="schd_light_en" name="schd_light_en"><br>
+        <br>
 
         <p id='schd_light'>
-        <label for="schd_light_start">Turn On the Lights at</label>
-        <input class="time start" id="schd_light_start" type="text" name="schd_light_start" /><br>
-        <label for="schd_light_stop">and Turn Off the Lights at</label>
-        <input class="time end" id="schd_light_stop" type="text" name="schd_light_stop" />
+          <label for "schd_light_en">Enable the Lights Schedule:</label>
+          <input type="checkbox" id="schd_light_en" name="schd_light_en"><br>
+          <label for="schd_light_start">Turn On the Lights at</label>
+          <input class="time start" id="schd_light_start" type="text" name="schd_light_start" /><br>
+          <label for="schd_light_stop">and Turn Off the Lights at</label>
+          <input class="time end" id="schd_light_stop" type="text" name="schd_light_stop" />
         </p>
 
         <input type="submit" value="Submit">
@@ -170,7 +169,8 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
     $('#schd_light .time').timepicker({
         'showDuration': true,
         'timeFormat': 'h:i a',
-        'step': 15
+        'step': 15,
+        'listWidth': 1.75
     });
 
     $('#schd_light').datepair();
