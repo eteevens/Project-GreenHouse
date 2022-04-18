@@ -30,7 +30,6 @@ schedulerFrame = {'schd_water_drip_en': False,
                   'schd_water_drip_time': '12:00 am',
                   'schd_water_drip_duration': 0,
                   'schd_water_drip_repeat': 1,
-                  'schd_water_drip_inf': False,
                   'schd_light_en': False,
                   'schd_light_start': '12:00 am',
                   'schd_light_stop': '12:15 am'}

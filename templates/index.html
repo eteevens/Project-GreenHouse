@@ -84,9 +84,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         <label for="schd_water_drip_duration">Seconds</label><br>
         <label for="schd_water_drip_repeat">Repeat for</label>
         <input type="number" id="schd_water_drip_repeat" name="schd_water_drip_repeat" min="1">
-        <label for="schd_water_drip_repeat">Day(s) or</label>
-        <label for="schd_water_drip_inf"> Repeat Always: </label>
-        <input type="checkbox" id="schd_water_drip_inf" name="schd_water_drip_inf">
+        <label for="schd_water_drip_repeat">Day(s)</label>
         <br>
 
         <p id='schd_light'>
@@ -244,7 +242,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
       $("#schedule_form").submit(function (event) {
 
-        var scheduleCount = 8; //the number of scheduler outputs
+        var scheduleCount = 7; //the number of scheduler outputs
 
         var userScheduleInput = []; //reads in the user's input, which needs to be
         //formatted before being sent
