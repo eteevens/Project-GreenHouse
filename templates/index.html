@@ -92,20 +92,22 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         <label for "schd_light_en">Enable the Lights Schedule:</label>
         <input type="checkbox" id="schd_light_en" name="schd_light_en"><br>
 
+        <p id='schd_light'>
         <label for="schd_light_start">Turn On the Lights at</label>
-        <input id="schd_light_start" type="text" name="schd_light_start"><br>
+        <input class="time start" id="schd_light_start" type="text" name="schd_light_start" /><br>
         <label for="schd_light_stop">and Turn Off the Lights at</label>
-        <input id="schd_light_stop" type="text" name="schd_light_stop">
+        <input class="time end" id="schd_light_stop" type="text" name="schd_light_stop" />
+        </p>
 
-        <br><input type="submit" value="Submit">
+        <input type="submit" value="Submit">
       </form>
     </div>
     <div class=other-controls width=100%>
         <form id="controls_form">
-          <label for="current_temp_high">Max Temperature:</label>
-          <input type="number" id="current_temp_high" name="current_temp_high" min="10">
           <label for="current_temp_low">Min Temperature:</label>
-          <input type="number" id="current_temp_low" name="current_temp_low" min="10">
+          <input type="number" id="current_temp_low" name="current_temp_low" min="10" max="100">
+          <label for="current_temp_high">Max Temperature:</label>
+          <input type="number" id="current_temp_high" name="current_temp_high" min="10" max="100">
           <br>
 
           <label for="current_water_drip_en">Enable the Water Drip:</label>
@@ -134,6 +136,14 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
   integrity="sha512-WHnaxy6FscGMvbIB5EgmjW71v5BCQyz5kQTcZ5iMxann3HczLlBHH5PQk7030XmmK5siar66qzY+EJxKHZTPEQ=="
   crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+  <!--include datepair library (for the scheduler, prevents min/max error)-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datepair.js/0.2.2/datepair.js"
+  integrity="sha512-Lag7lW5bKw99+dqoi9xuyEGWiwiJ71Hq6SlBTQVfKHTAS8lfzb5Wbb8Ki47rAQUQVF9FIRQvaaKGheOF05OgVQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datepair.js/0.2.2/jquery.datepair.js"
+  integrity="sha512-zsSefNsgTWSGP8opttj493RlT55FCOpIrwTJsuM1HmHsmvgDVhvXEUjxRuL7sR+eDKV3Gv8kkypmTgkJRz4Vyg=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
   <!--chart.js library (for the graph) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"
   integrity="sha512-QSkVNOCYLtj73J4hbmVoOV6KVZuMluZlioC+trLpewV8qMjsWqlIQvkn1KGX2StWvPMdWGBqim1xlC8krl1EKQ=="
@@ -151,26 +161,34 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   $(document).ready(function () {
 
-      //timepicker for the water drip time
+    //timepicker for the start and stop of the lights
+    $('#schd_light .time').timepicker({
+        'showDuration': true,
+        'timeFormat': 'h:i a',
+        'step': 15
+    });
+
+    $('#schd_light').datepair();
+
+
+    //timepicker for the water drip time
       $('#schd_water_drip_time').timepicker({'scrollDefault':'now',
                                              'orientation':'tl',
                                              'listWidth': 1,
                                              'step': 15,
                                              'timeFormat': 'h:i a'});
 
-      //timepicker for the light start time
-      $('#schd_light_start').timepicker({'scrollDefault':'now',
-                                            'orientation':'tl',
-                                            'listWidth': 1,
-                                            'step': 15,
-                                            'timeFormat': 'h:i a'});
 
-      //timepicker for the light stop time
-      $('#schd_light_stop').timepicker({'scrollDefault':'now',
-                                            'orientation':'tl',
-                                            'listWidth': 1,
-                                            'step': 15,
-                                            'timeFormat': 'h:i a'});
+      $('#current_temp_low').change(function () { //the current_temp_high
+        //cannot be lower than the current_temp_low + 1
+          $('#current_temp_high').attr('min', Number($('#current_temp_low').val()) + 1);
+      });
+
+      $('#current_temp_high').change(function () { //the current_temp_high
+        //cannot be lower than the current_temp_low
+          $('#current_temp_low').attr('max', Number($('#current_temp_high').val()));
+      });
+
 
   /*
    * Fixes the issue with checkbox forms using serializeArray which ordinarily
@@ -234,8 +252,6 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
             //submission into an array with {"name":<nameofinput>, "value":<valueofinput>}
             //elements, corrected for checkbox error
 
-          console.log(userScheduleInput[iterSchdRead]);
-
           schedulerData[userScheduleInput[iterSchdRead]["name"]]
           = userScheduleInput[iterSchdRead]["value"];
           //turns the array into a dictionary with <nameofinput>:<valueofinput> elements
@@ -249,6 +265,8 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
             return; //do not send data if there is none to send
           }
         }
+
+        alert(schedulerData["schd_light_start"]);
 
         $.ajax({type:"POST",
                  url:"/calendar_feed",
@@ -278,7 +296,6 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
          var controlsData = {}; //holds the data to be sent
 
-         controlsReadLoop:
          for (iterControlsRead = 0; iterControlsRead < outputCount; iterControlsRead++) {
            userControlsInput.push($("#controls_form").serializeArray(
              {checkboxesAsBools: true})[iterControlsRead]); //turns the input from the
