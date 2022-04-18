@@ -119,6 +119,11 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
           <label for="current_lights">Lights:</label>
           <input type="checkbox" id="current_lights" name="current_lights">
+          <label for="current_fan">Fan:</label>
+          <input type="checkbox" id="current_fan" name="current_fan">
+          <label for="current_heat_pad">Heat Pad:</label>
+          <input type="checkbox" id="current_heat_pad" name="current_heat_pad">
+
           <br>
 
           <input type="submit" value="Submit">
@@ -289,7 +294,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         //takes the data from the submission of the form and sends it
         //via AJAX and JSON to the backend for processing
 
-         var outputCount = 5; //the number of controls outputs
+         var outputCount = 7; //the number of controls outputs
 
          var userControlsInput = []; //reads in the user's input, which needs to be
          //formatted before being sent

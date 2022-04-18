@@ -20,7 +20,9 @@ controlsFrame = {'current_temp_low': 10,
                  'current_temp_high': 15,
                  'current_water_drip_en': False,
                  'current_water_drip_duration': 0,
-                 'current_lights': False}
+                 'current_lights': False,
+                 'current_fan': False,
+                 'current_heat_pad': False}
 controlsFrameSem = Semaphore()
 
 #the scheduler controls frame, initalized to standard settings to prevent errors
