@@ -145,9 +145,44 @@ def send_schd_data(): #send the scheduler data
 
     return json.dumps(schd_data)
 
+def display_controls_data(): #display the current controls data
+    controlsFrameSem.acquire()
+    controls_data = controlsFrame.copy() #get the current frame of the controls data
+    controlsFrameSem.release()
+
+    display_data = {}
+
+    display_data["Min Temperature"] = controls_data["current_temp_low"]
+    display_data["Max Temperature"] = controls_data["current_temp_high"]
+    display_data["Water Drip Enabled"] = controls_data["current_water_drip_en"]
+    display_data["Water Drip Duration"] = controls_data["current_water_drip_duration"]
+    display_data["Light Enabled"] = controls_data["current_lights"]
+    display_data["Fan Enabled"] = controls_data["current_fan"]
+    display_data["Heat Pad Enabled"] = controls_data["current_heat_pad"]
+
+    return json.dumps(display_data)
+
+def display_schd_data(): #display the current controls data
+    schedulerFrameSem.acquire()
+    schd_data = schedulerFrame.copy() #get the current frame of the schd data
+    schedulerFrameSem.release()
+
+    display_data = {}
+
+    display_data["Water Drip Schedule Enable"] = schd_data["schd_water_drip_en"]
+    display_data["Run the Water Drip At"] = schd_data["schd_water_drip_time"]
+    display_data["Water Drip Duration"] = schd_data["schd_water_drip_duration"]
+    display_data["Water Drip Repeat Interval"] = schd_data["schd_water_drip_repeat"]
+    display_data["Lights Schedule Enable"] = schd_data["schd_light_en"]
+    display_data["Lights Turn On at"] = schd_data["schd_light_start"]
+    display_data["Lights Turn Off at"] = schd_data["schd_light_stop"]
+
+
+    return json.dumps(display_data)
+
 @app.route('/') #index of the GUI (the viewable page)
 def index():
-    return render_template('index.html')
+    return render_template('index.html', data=str(controlsFrame))
 
 @app.route('/video_feed') #video feed route
 def video_feed_route():
@@ -171,6 +206,16 @@ def calendar_feed_route():
     schedulerFrameSem.release()
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
+@app.route('/current_controls_settings') #display the current control settings
+#(for frontend)
+def current_controls_settings_route():
+    return Response(display_controls_data(), mimetype='application/json')
+
+@app.route('/schd_controls_settings') #display the scheduled control settings
+#(for frontend)
+def schd_controls_settings_route():
+    return Response(display_schd_data(), mimetype='application/json')
 
 @app.route('/controls_feed', methods=["POST"]) #controls feed route
 def controls_feed_route():

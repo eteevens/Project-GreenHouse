@@ -16,6 +16,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     body, .ui-timepicker-wrapper {
       font-family: verdana, serif;
+      font-size: 75%;
     }
 
     img {
@@ -42,15 +43,23 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
       grid-area: controls;
     }
 
+    .view-controls {
+      grid-area: vc;
+    }
+
+    .view-timing {
+      grid-area: vt;
+    }
+
     .layout-container {
       display: grid;
       grid-template-areas:
       'graph graph graph graph camera camera camera'
       'graph graph graph graph camera camera camera'
       'graph graph graph graph camera camera camera'
-      'graph graph graph graph timing timing timing'
-      'graph graph graph graph timing timing timing'
-      'controls controls controls controls timing timing timing';
+      'graph graph graph graph vt timing timing'
+      'vc vc controls controls vt timing timing'
+      'vc vc controls controls vt timing timing';
       grid-template-columns: 12% 12% 12% 12% 12% 12% 12%;
       grid-template-rows: 12% 12% 12% 12% 12% 12%;
       grid-gap: 2%;
@@ -99,10 +108,17 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         <input type="submit" value="Submit">
       </form>
     </div>
+
+    <div class=view-controls id="curr_controls_settings_view">
+    </div>
+
+    <div class=view-timing id="schd_controls_settings_view">
+  </div>
+
     <div class=other-controls width=100%>
         <form id="controls_form">
           <label for="current_temp_low">Min Temperature:</label>
-          <input type="number" id="current_temp_low" name="current_temp_low" min="10" max="100">
+          <input type="number" id="current_temp_low" name="current_temp_low" min="10" max="100"><br>
           <label for="current_temp_high">Max Temperature:</label>
           <input type="number" id="current_temp_high" name="current_temp_high" min="10" max="100">
           <br>
@@ -162,6 +178,48 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
   $(document).ready(function () {
+
+    //read in the scheduler controls settings when the document loads
+    $.ajax({
+      type: "GET",
+      url: "/schd_controls_settings",
+      dataType: "json",
+
+      success: function( response ) {
+
+        $('#schd_controls_settings_view').html(''); //clear the HTML
+
+        for (let value in response) {
+          $('#schd_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+        }
+      } //put whatever is in the JSON into the HTML
+
+    })
+
+      .fail(function( ) {
+        console.log("Error with the html getting of current_controls_settings");
+      });
+
+      //read in the current controls settings whenever the document loads
+      $.ajax({
+        type: "GET",
+        url: "/current_controls_settings",
+        dataType: "json",
+
+        success: function( response ) {
+
+          $('#curr_controls_settings_view').html(''); //clear the HTML
+
+          for (let value in response) {
+            $('#curr_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+          }
+        } //put whatever is in the JSON into the HTML
+
+      })
+
+        .fail(function( ) {
+          console.log("Error with the html getting of current_controls_settings");
+        });
 
     //timepicker for the start and stop of the lights
     $('#schd_light .time').timepicker({
@@ -269,8 +327,6 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
           }
         }
 
-        alert(schedulerData["schd_light_start"]);
-
         $.ajax({type:"POST",
                  url:"/calendar_feed",
                  data:JSON.stringify(schedulerData),
@@ -281,6 +337,28 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
                   });
                   //send the data via AJAX as a JSON string to the relative url
                   // '/controls_feed', if it fails, write to the console
+
+        //read in the scheduler controls settings whenever the submit button is pressed,
+        //to display current values
+        $.ajax({
+          type: "GET",
+          url: "/schd_controls_settings",
+          dataType: "json",
+
+          success: function( response ) {
+
+            $('#schd_controls_settings_view').html(''); //clear the HTML
+
+            for (let value in response) {
+              $('#schd_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+            }
+          } //put whatever is in the JSON into the HTML
+
+        })
+
+          .fail(function( ) {
+            console.log("Error with the html getting of current_controls_settings");
+          });
 
         event.preventDefault(); //prevent the submission button from attempting
         //to reload the page to submit the form without AJAX
@@ -329,6 +407,28 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
                  });
                  //send the data via AJAX as a JSON string to the relative url
                  // '/controls_feed', if it fails, write to the console
+
+       //read in the current controls settings whenever the submit button is pressed,
+       //to display current values
+       $.ajax({
+         type: "GET",
+         url: "/current_controls_settings",
+         dataType: "json",
+
+         success: function( response ) {
+
+           $('#curr_controls_settings_view').html(''); //clear the HTML
+
+           for (let value in response) {
+             $('#curr_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+           }
+         } //put whatever is in the JSON into the HTML
+
+       })
+
+         .fail(function( ) {
+           console.log("Error with the html getting of current_controls_settings");
+         });
 
            event.preventDefault(); //prevent the submission button from attempting
            //to reload the page to submit the form without AJAX
