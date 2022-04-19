@@ -147,42 +147,42 @@ def send_schd_data(): #send the scheduler data
 
 def display_controls_data(): #display the current controls data
     controlsFrameSem.acquire()
-    controls_data = controlsFrame.copy() #get the current frame of the controls data
+    display_controls = controlsFrame.copy() #get the current frame of the controls data
     controlsFrameSem.release()
 
     display_data = {}
 
-    display_data["Min Temperature"] = controls_data["current_temp_low"]
-    display_data["Max Temperature"] = controls_data["current_temp_high"]
-    display_data["Water Drip Enabled"] = controls_data["current_water_drip_en"]
-    display_data["Water Drip Duration"] = controls_data["current_water_drip_duration"]
-    display_data["Light Enabled"] = controls_data["current_lights"]
-    display_data["Fan Enabled"] = controls_data["current_fan"]
-    display_data["Heat Pad Enabled"] = controls_data["current_heat_pad"]
+    display_data["Min Temperature"] = display_controls["current_temp_low"]
+    display_data["Max Temperature"] = display_controls["current_temp_high"]
+    display_data["Water Drip Enabled"] = display_controls["current_water_drip_en"]
+    display_data["Water Drip Duration"] = display_controls["current_water_drip_duration"]
+    display_data["Light Enabled"] = display_controls["current_lights"]
+    display_data["Fan Enabled"] = display_controls["current_fan"]
+    display_data["Heat Pad Enabled"] = display_controls["current_heat_pad"]
 
     return json.dumps(display_data)
 
 def display_schd_data(): #display the current controls data
     schedulerFrameSem.acquire()
-    schd_data = schedulerFrame.copy() #get the current frame of the schd data
+    schd_controls = schedulerFrame.copy() #get the current frame of the schd data
     schedulerFrameSem.release()
 
     display_data = {}
 
-    display_data["Water Drip Schedule Enable"] = schd_data["schd_water_drip_en"]
-    display_data["Run the Water Drip At"] = schd_data["schd_water_drip_time"]
-    display_data["Water Drip Duration"] = schd_data["schd_water_drip_duration"]
-    display_data["Water Drip Repeat Interval"] = schd_data["schd_water_drip_repeat"]
-    display_data["Lights Schedule Enable"] = schd_data["schd_light_en"]
-    display_data["Lights Turn On at"] = schd_data["schd_light_start"]
-    display_data["Lights Turn Off at"] = schd_data["schd_light_stop"]
+    display_data["Water Drip Schedule Enable"] = schd_controls["schd_water_drip_en"]
+    display_data["Run the Water Drip At"] = schd_controls["schd_water_drip_time"]
+    display_data["Water Drip Duration"] = schd_controls["schd_water_drip_duration"]
+    display_data["Water Drip Repeat Interval"] = schd_controls["schd_water_drip_repeat"]
+    display_data["Lights Schedule Enable"] = schd_controls["schd_light_en"]
+    display_data["Lights Turn On at"] = schd_controls["schd_light_start"]
+    display_data["Lights Turn Off at"] = schd_controls["schd_light_stop"]
 
 
     return json.dumps(display_data)
 
 @app.route('/') #index of the GUI (the viewable page)
 def index():
-    return render_template('index.html', data=str(controlsFrame))
+    return render_template('index.html')
 
 @app.route('/video_feed') #video feed route
 def video_feed_route():
@@ -251,6 +251,18 @@ def write_client_controls_route():
 @app.route('/write_client_schd') #write scheduler data to the client
 def write_client_schd_route():
     return Response(send_schd_data(), mimetype='application/json')
+
+@app.route('/close_doc', methods=["POST"]) #makes sure that when the
+#document is closed, all the semaphores are released
+def close_doc_route():
+    print('the document is closing')
+    schedulerFrameSem.release()
+    controlsFrameSem.release()
+    graphFrameSem.release()
+    newDataFlagSem.release()
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port='5000', debug=True, threaded=True, use_reloader=False)

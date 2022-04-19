@@ -48,7 +48,7 @@ def send_and_recieve():
 
         json_data = json.dumps(data_to_send) #turns the data into a JSON string
 
-        requests.post(write_to_app, json=json_data) #posts data to the write address
+        requests.post(write_to_app, json=json_data, timeout=10) #posts data to the write address
 
         if counter == 6:
             controls_data = requests.get(read_controls_from_app, timeout=10)

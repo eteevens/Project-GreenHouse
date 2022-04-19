@@ -530,6 +530,19 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
       };
     });
 
+    $(window).on("beforeunload", function() { //makes sure that the
+      //semaphores are released when the document unloads
+          $.ajax({
+            type: 'POST',
+            async: false,
+            url: "/close_doc",
+            data: { }
+          }).fail(function( ) {
+            console.log("Error with the html getting of close_doc");
+          });
+
+    });
+
   </script>
 
 </body>
