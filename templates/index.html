@@ -58,8 +58,8 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
       'graph graph graph graph camera camera camera'
       'graph graph graph graph camera camera camera'
       'graph graph graph graph vt timing timing'
-      'vc vc controls controls vt timing timing'
-      'vc vc controls controls vt timing timing';
+      'vc controls controls controls vt timing timing'
+      'vc controls controls controls vt timing timing';
       grid-template-columns: 12% 12% 12% 12% 12% 12% 12%;
       grid-template-rows: 12% 12% 12% 12% 12% 12%;
       grid-gap: 2%;
@@ -118,9 +118,11 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
     <div class=other-controls width=100%>
         <form id="controls_form">
           <label for="current_temp_low">Min Temperature:</label>
-          <input type="number" id="current_temp_low" name="current_temp_low" min="10" max="100"><br>
+          <input type="number" id="current_temp_low" name="current_temp_low" min="10" max="50">
           <label for="current_temp_high">Max Temperature:</label>
-          <input type="number" id="current_temp_high" name="current_temp_high" min="10" max="100">
+          <input type="number" id="current_temp_high" name="current_temp_high" min="10" max="50"><br>
+          <label for="current_humid_high">Max Humidity:</label>
+          <input type="number" id="current_humid_high" name="current_humid_high" min="0" max="100">
           <br>
 
           <label for="current_water_drip_en">Enable the Water Drip:</label>
@@ -370,7 +372,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         //takes the data from the submission of the form and sends it
         //via AJAX and JSON to the backend for processing
 
-         var outputCount = 7; //the number of controls outputs
+         var outputCount = 8; //the number of controls outputs
 
          var userControlsInput = []; //reads in the user's input, which needs to be
          //formatted before being sent
@@ -434,7 +436,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
            //to reload the page to submit the form without AJAX
       });
 
-    var inputCount = 7; //the number of different incoming data
+    var inputCount = 6; //the number of different incoming data
     //for the graph
 
     const dataDisplay = []; //the array of values for the display of the graph,

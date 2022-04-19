@@ -18,6 +18,7 @@ graphFrameSem = Semaphore()
 #the current controls frame, initalized to standard settings to prevent errors
 controlsFrame = {'current_temp_low': 10,
                  'current_temp_high': 15,
+                 'current_humid_high': 60,
                  'current_water_drip_en': False,
                  'current_water_drip_duration': 0,
                  'current_lights': False,
@@ -154,6 +155,7 @@ def display_controls_data(): #display the current controls data
 
     display_data["Min Temperature"] = display_controls["current_temp_low"]
     display_data["Max Temperature"] = display_controls["current_temp_high"]
+    display_data["Max Humidity"] = display_controls["current_humid_high"]
     display_data["Water Drip Enabled"] = display_controls["current_water_drip_en"]
     display_data["Water Drip Duration"] = display_controls["current_water_drip_duration"]
     display_data["Light Enabled"] = display_controls["current_lights"]
@@ -233,6 +235,18 @@ def controls_feed_route():
 def read_client_route():
     client_data = request.get_json() #get the data from the data client
     #(the Raspberry Pi code)
+
+    controlsFrameSem.acquire()
+    setPoints = controlsFrame.copy() #get the current frame of the controls data
+    controlsFrameSem.release()
+
+    graph_data = json.loads(client_data) #add the control set points to the graph
+
+    graph_data['Max Temperature Set Point'] = setPoints['current_temp_high']
+    graph_data['Min Temperature Set Point'] = setPoints['current_temp_low']
+    graph_data['Max Humidity Set Point'] = setPoints['current_humid_high']
+
+    client_data = json.dumps(graph_data)
 
     newDataFlagSem.acquire()
     graphFrameSem.acquire()
