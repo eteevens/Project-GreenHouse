@@ -66,10 +66,10 @@ chan = AnalogIn(ads, ADS.P0)
 '''************* CONTROLS FUNCTIONS ***************************'''
 
 #gathering data
-def gather_temp_data(): #returns temp in Celcius 
+def gather_temp_data(): #returns temp in Celcius
     #gathering adc temperature data
     tempData = chan.voltage
-    #convert voltage to celcius 
+    #convert voltage to celcius
     tempConv = ((20/2.934)*tempData) + (25.692/2.934)
     print("Temperature = {:>5.2f}°C".format(tempConv))
     return tempConv
@@ -78,7 +78,7 @@ def gather_light_data(): #returns uv light level- 0 to 100
     uv_raw = uv.uv_raw
     print('UV Light Level:',uv_raw)
     return uv_raw
-    
+
 def gather_humid_data(): #returns humidity level- 1 to 100 %
     humidity = humidSen.relative_humidity
     print("Humidity = {:>5.2f} %".format(humidSen.relative_humidity))
@@ -107,7 +107,7 @@ def run_pump(duration):
 def run_fan():
     print("Fan is on")
     fan.value = True
-    
+
 def stop_fan():
     print("Fan is off")
     fan.value = False
@@ -124,7 +124,7 @@ def run_fan_duration(duration):
 def run_heat():
     print("Heat is on")
     heat.value = True
-    
+
 def stop_heat():
     print("Heat is off")
     heat.value = False
@@ -140,7 +140,7 @@ def run_heat_duration(duration):
 def run_lights():
     print("Lights are on")
     lights.fill((255,255,255))
-    
+
 def stop_lights():
     print("Lights are off")
     lights.fill((0,0,0))
@@ -151,7 +151,7 @@ def run_lights_duration(duration):
     time.sleep(duration)
     lights.fill((0,0,0))
     time.sleep(3)
-    
+
 def increment_day(dayToRun,repeat):
     nextDay = dayToRun + timedelta(days=repeat)
     print('Next water date is ', nextDay)
@@ -177,17 +177,20 @@ dateToRun = currentDate
 
 '''************* GATHER DATA, RUN CONTROLS ***************************'''
 while True:
-    
+
     #read in data packet
-    
-    #reads from the controls 
+
+    #reads from the controls
     controls_data = requests.get(read_controls_from_app, timeout=10)
     web_controls_input = controls_data.json()
-    
+
+    print("web_controls_input: " + web_controls_input)
+
     #reads from the scheduler
     schd_data = requests.get(read_schd_from_app, timeout=10)
     web_schd_input = schd_data.json()
-    
+
+    print("web_schd_input " + web_schd_input)
 
     #Regular Inputs to process
     currTempLow = web_controls_input['current_temp_low'] #int
@@ -196,7 +199,7 @@ while True:
     currDripDur = web_controls_input['current_water_drip_duration'] #int
     currLight = web_controls_input['current_lights'] #bool
     currHumidHigh = web_controls_input['current_humid_high'] #int
-    currHeat = web_controls_input['current_heat_pad'] 
+    currHeat = web_controls_input['current_heat_pad']
     currFan = web_controls_input['current_fan']
 
     #Scheduled Inputs to process
@@ -207,8 +210,8 @@ while True:
     scLightEn = web_schd_input['schd_light_en'] #bool
     scLightStart = web_schd_input['schd_light_start'] #time in 24h
     scLightStop = web_schd_input['schd_light_stop'] #time in 24h
-    
-    
+
+
     #read values from pi
     print("----------------------------------------")
     currentTemp = gather_temp_data()
@@ -217,18 +220,18 @@ while True:
     currentTime = get_current_time()
     currentDate = get_current_date()
     print("----------------------------------------")
-    
+
     #send to other program
     data_to_send = {'time':currentTime, 'Temperature (in C)':f'{currentTemp:.2f}',
                     'Humidity':f'{currentHumid:.2f}', 'Light Level':f'{currentLight:.2f}'}
-    
+
     json_data = json.dumps(data_to_send)
-    
+
     requests.post(write_to_app, json=json_data, timeout=10) #post data to the write address
-    
-    
+
+
     #basic controls- not in scheduler
-    
+
     #fan controls
     print(currFan)
 
@@ -237,46 +240,58 @@ while True:
     if (float(currentTemp) >= float(currTempHigh)):
         print('Condition to turn fan on met- temp')
         run_fan()
-        
-    if (float(currentHumid) >= float(currHumidHigh)): 
-        print('Condition to turn fan on met-humid')
+
+    if (float(currentHumid) >= float(currHumidHigh)):
+        print('Condition to turn fan on met- humid')
         run_fan()
-        
+
     if (bool(currFan) == True):
-        print('Condition to turn fan on met-user')
+        print('Condition to turn fan on met- user')
         run_fan()
-        
-        
-    if ((float(currentTemp) <= float(currTempLow)) or (bool(currFan) == False)):
-        print('Condition to turn fan off met')
+
+
+    if (float(currentTemp) <= float(currTempLow):
+        print('Condition to turn fan off met- temp')
         stop_fan()
-        
+
+    if (bool(currFan) == False)):
+        print('Condition to turn fan off met- user')
+        stop_fan()
+
     #Heat controls
-    
-    if ((float(currentTemp) <= float(currTempLow)) or (bool(currHeat) == True)):
-        print('Condition to turn heat on met')
+
+    if ((float(currentTemp) <= float(currTempLow)):
+        print('Condition to turn heat on met- temp')
         run_heat()
-    
+
+    if  (bool(currHeat) == True)):
+        print('Condition to turn heat on met- user')
+        run_heat()
+
     if (float(currentTemp) > float(currTempLow)):
-        print('Condition to turn heat off met')
+        print('Condition to turn heat off met- temp')
         stop_heat()
-        
+
+    if  (bool(currHeat) == False)):
+        print('Condition to turn heat off met- user')
+        stop_heat()
+
     #Water drip controls
-    if (currDripEn == True):
+    if (bool(currDripEn) == True):
         print('Condition to turn drip on met')
         run_pump_duration(currDripDur)
-        
+
     #Light controls
-    if (currLight == True):
+    if (bool(currLight) == True):
         print('Condition to turn light on met')
         #run_lights()
-        
-    if (currLight == False):
+
+    if (bool(currLight) == False):
         print('Condition to turn light off met')
         #stop_lights()
-        
+
     #time scheduler
-    
+
     #water pump
     if(scWaterDripEn == True):
         print('Condition to enable water drip met')
@@ -284,7 +299,7 @@ while True:
             print('time to water')
             run_pump(scWaterDripDur)
             dateToRun = increment_day(currentDate,scWaterDripRepeat)
-        
+
     #lights
     if(scLightEn == True):
         print('Condition to enable lights met')
@@ -294,8 +309,5 @@ while True:
         if(currentTime == scLightStop):
             print('time to turn off light')
             #stop_lights()
-            
-    time.sleep(1)
-    
-        
 
+    time.sleep(1)
