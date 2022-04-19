@@ -1,0 +1,550 @@
+<!DOCTYPE html> <!-- names the type of document, in this case, HTML5 -->
+<html>
+
+<head>
+
+<!--customized jquery timepicker css stylesheet-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.18/jquery.timepicker.min.css"
+integrity="sha512-GgUcFJ5lgRdt/8m5A0d0qEnsoi8cDoF0d6q+RirBPtL423Qsj5cI9OxQ5hWvPi5jjvTLM/YhaaFuIeWCLi6lyQ=="
+crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+</head>
+
+<body>
+
+  <!--main css style for the GUI, note that the timepicker's font is set to match the rest-->
+  <style>
+    body, .ui-timepicker-wrapper {
+      font-family: verdana, serif;
+      font-size: 75%;
+    }
+
+    img {
+      margin: 0;
+    }
+
+    iframe {
+      border: 0;
+    }
+
+    .graphics {
+      grid-area: graph;
+    }
+
+    .video {
+      grid-area: camera;
+    }
+
+    .time-controls {
+      grid-area: timing;
+    }
+
+    .other-controls {
+      grid-area: controls;
+    }
+
+    .view-controls {
+      grid-area: vc;
+    }
+
+    .view-timing {
+      grid-area: vt;
+    }
+
+    .layout-container {
+      display: grid;
+      grid-template-areas:
+      'graph graph graph graph camera camera camera'
+      'graph graph graph graph camera camera camera'
+      'graph graph graph graph camera camera camera'
+      'graph graph graph graph vt timing timing'
+      'vc vc controls controls vt timing timing'
+      'vc vc controls controls vt timing timing';
+      grid-template-columns: 12% 12% 12% 12% 12% 12% 12%;
+      grid-template-rows: 12% 12% 12% 12% 12% 12%;
+      grid-gap: 2%;
+      justify-content: center;
+    }
+
+    .layout-container > div {
+      text-align: center;
+      outline: 1px outset black;
+    }
+  </style>
+
+  <!--header and grid layout of the project-->
+  <h1 style="text-align:center;"> Project GreenHouse </h1>
+
+  <div class=layout-container>
+    <div class=graphics><div>
+      <canvas id="live_graph"></canvas>
+    </div></div>
+    <div class=video><img src="{{ url_for('video_feed_route') }}" height=100%></img>
+  </div>
+    <div class=time-controls>
+      <form id="schedule_form">
+        <label for="schd_water_drip_en">Enable the Water Drip Schedule:</label>
+        <input type="checkbox" id="schd_water_drip_en" name="schd_water_drip_en"><br>
+
+        <label for="schd_water_drip_time">Run the Water Drip at</label>
+        <input id="schd_water_drip_time" type="text" name="schd_water_drip_time"><br>
+        <label for="schd_water_drip_duration">For</label>
+        <input type="number" id="schd_water_drip_duration" name="schd_water_drip_duration" min="0">
+        <label for="schd_water_drip_duration">Seconds</label><br>
+        <label for="schd_water_drip_repeat">Repeat for</label>
+        <input type="number" id="schd_water_drip_repeat" name="schd_water_drip_repeat" min="1">
+        <label for="schd_water_drip_repeat">Day(s)</label>
+        <br>
+
+        <p id='schd_light'>
+          <label for "schd_light_en">Enable the Lights Schedule:</label>
+          <input type="checkbox" id="schd_light_en" name="schd_light_en"><br>
+          <label for="schd_light_start">Turn On the Lights at</label>
+          <input class="time start" id="schd_light_start" type="text" name="schd_light_start" /><br>
+          <label for="schd_light_stop">and Turn Off the Lights at</label>
+          <input class="time end" id="schd_light_stop" type="text" name="schd_light_stop" />
+        </p>
+
+        <input type="submit" value="Submit">
+      </form>
+    </div>
+
+    <div class=view-controls id="curr_controls_settings_view">
+    </div>
+
+    <div class=view-timing id="schd_controls_settings_view">
+  </div>
+
+    <div class=other-controls width=100%>
+        <form id="controls_form">
+          <label for="current_temp_low">Min Temperature:</label>
+          <input type="number" id="current_temp_low" name="current_temp_low" min="10" max="100"><br>
+          <label for="current_temp_high">Max Temperature:</label>
+          <input type="number" id="current_temp_high" name="current_temp_high" min="10" max="100">
+          <br>
+
+          <label for="current_water_drip_en">Enable the Water Drip:</label>
+          <input type="checkbox" id="current_water_drip_en" name="current_water_drip_en">
+          <label for="current_water_drip_duration">For</label>
+          <input type="number" id="current_water_drip_duration" name="current_water_drip_duration" min="0">
+          <label for="current_water_drip_duration">Seconds</label>
+          <br>
+
+          <label for="current_lights">Lights:</label>
+          <input type="checkbox" id="current_lights" name="current_lights">
+          <label for="current_fan">Fan:</label>
+          <input type="checkbox" id="current_fan" name="current_fan">
+          <label for="current_heat_pad">Heat Pad:</label>
+          <input type="checkbox" id="current_heat_pad" name="current_heat_pad">
+
+          <br>
+
+          <input type="submit" value="Submit">
+        </form>
+    </div>
+  </div>
+
+  <!--jquery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+  integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!--jquery timepicker library (for the scheduler)-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.18/jquery.timepicker.min.js"
+  integrity="sha512-WHnaxy6FscGMvbIB5EgmjW71v5BCQyz5kQTcZ5iMxann3HczLlBHH5PQk7030XmmK5siar66qzY+EJxKHZTPEQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!--include datepair library (for the scheduler, prevents min/max error)-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datepair.js/0.2.2/datepair.js"
+  integrity="sha512-Lag7lW5bKw99+dqoi9xuyEGWiwiJ71Hq6SlBTQVfKHTAS8lfzb5Wbb8Ki47rAQUQVF9FIRQvaaKGheOF05OgVQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datepair.js/0.2.2/jquery.datepair.js"
+  integrity="sha512-zsSefNsgTWSGP8opttj493RlT55FCOpIrwTJsuM1HmHsmvgDVhvXEUjxRuL7sR+eDKV3Gv8kkypmTgkJRz4Vyg=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!--chart.js library (for the graph) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"
+  integrity="sha512-QSkVNOCYLtj73J4hbmVoOV6KVZuMluZlioC+trLpewV8qMjsWqlIQvkn1KGX2StWvPMdWGBqim1xlC8krl1EKQ=="
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+
+    function generateColor() { //creates a random hsl value color every time the function
+      //is called and returns it, this makes the graph have different
+      //(but reasonably bright) colored lines
+      var hsl = 'hsla(' + Math.floor(Math.random() * 360) + ', 100%, 50%, 1)';
+      return hsl;
+    }
+
+
+  $(document).ready(function () {
+
+    //read in the scheduler controls settings when the document loads
+    $.ajax({
+      type: "GET",
+      url: "/schd_controls_settings",
+      dataType: "json",
+
+      success: function( response ) {
+
+        $('#schd_controls_settings_view').html(''); //clear the HTML
+
+        for (let value in response) {
+          $('#schd_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+        }
+      } //put whatever is in the JSON into the HTML
+
+    })
+
+      .fail(function( ) {
+        console.log("Error with the html getting of current_controls_settings");
+      });
+
+      //read in the current controls settings whenever the document loads
+      $.ajax({
+        type: "GET",
+        url: "/current_controls_settings",
+        dataType: "json",
+
+        success: function( response ) {
+
+          $('#curr_controls_settings_view').html(''); //clear the HTML
+
+          for (let value in response) {
+            $('#curr_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+          }
+        } //put whatever is in the JSON into the HTML
+
+      })
+
+        .fail(function( ) {
+          console.log("Error with the html getting of current_controls_settings");
+        });
+
+    //timepicker for the start and stop of the lights
+    $('#schd_light .time').timepicker({
+        'showDuration': true,
+        'timeFormat': 'h:i a',
+        'step': 15,
+        'listWidth': 1.75
+    });
+
+    $('#schd_light').datepair();
+
+
+    //timepicker for the water drip time
+      $('#schd_water_drip_time').timepicker({'scrollDefault':'now',
+                                             'orientation':'tl',
+                                             'listWidth': 1,
+                                             'step': 15,
+                                             'timeFormat': 'h:i a'});
+
+
+      $('#current_temp_low').change(function () { //the current_temp_high
+        //cannot be lower than the current_temp_low + 1
+          $('#current_temp_high').attr('min', Number($('#current_temp_low').val()) + 1);
+      });
+
+      $('#current_temp_high').change(function () { //the current_temp_high
+        //cannot be lower than the current_temp_low
+          $('#current_temp_low').attr('max', Number($('#current_temp_high').val()));
+      });
+
+
+  /*
+   * Fixes the issue with checkbox forms using serializeArray which ordinarily
+   * only respond when toggled on.
+   *
+   * @see https://ourcodeworld.com/articles/read/1030/how-to-change-the-on-and-off-values-to-boolean-true-or-false-from-checkboxes-with-serialization-with-jquery-serialize-and-serializearray
+   */
+  (function ($) {
+      $.fn.serialize = function (options) {
+          return $.param(this.serializeArray(options));
+      };
+
+      $.fn.serializeArray = function (options) {
+          var o = $.extend({
+              checkboxesAsBools: false
+          }, options || {});
+
+          var rselectTextarea = /select|textarea/i;
+          var rinput = /text|hidden|password|search|number/i;
+
+          return this.map(function () {
+              return this.elements ? $.makeArray(this.elements) : this;
+          })
+          .filter(function () {
+              return this.name && !this.disabled &&
+                  (this.checked
+                  || (o.checkboxesAsBools && this.type === 'checkbox')
+                  || rselectTextarea.test(this.nodeName)
+                  || rinput.test(this.type));
+              })
+              .map(function (i, elem) {
+                  var val = $(this).val();
+                  return val == null ?
+                  null :
+                  $.isArray(val) ?
+                  $.map(val, function (val, i) {
+                      return { name: elem.name, value: val };
+                  }) :
+                  {
+                      name: elem.name,
+                      value: (o.checkboxesAsBools && this.type === 'checkbox') ?
+                          (this.checked ? "True" : "False") :
+                          val
+                  };
+              }).get();
+      };
+  })(jQuery);
+
+      $("#schedule_form").submit(function (event) {
+
+        var scheduleCount = 7; //the number of scheduler outputs
+
+        var userScheduleInput = []; //reads in the user's input, which needs to be
+        //formatted before being sent
+
+        var schedulerData = {}; //holds the data to be sent
+
+        for (iterSchdRead = 0; iterSchdRead < scheduleCount; iterSchdRead++) {
+          userScheduleInput.push($("#schedule_form").serializeArray(
+            {checkboxesAsBools: true})[iterSchdRead]); //turns the input from the
+            //submission into an array with {"name":<nameofinput>, "value":<valueofinput>}
+            //elements, corrected for checkbox error
+
+          schedulerData[userScheduleInput[iterSchdRead]["name"]]
+          = userScheduleInput[iterSchdRead]["value"];
+          //turns the array into a dictionary with <nameofinput>:<valueofinput> elements
+
+          if (schedulerData[userScheduleInput[iterSchdRead]["name"]] === "") {
+            //if a input has no value, return an alert, note that this returns
+            //a false positive if the checkbox correction (see above) is sending
+            //booleans and not boolean strings
+            alert('Error, no data inputed');
+            event.preventDefault();
+            return; //do not send data if there is none to send
+          }
+        }
+
+        $.ajax({type:"POST",
+                 url:"/calendar_feed",
+                 data:JSON.stringify(schedulerData),
+                 contentType: "application/json",})
+
+                 .fail(function( ) {
+                    console.log("Error with the html posting of calendar_feed");
+                  });
+                  //send the data via AJAX as a JSON string to the relative url
+                  // '/controls_feed', if it fails, write to the console
+
+        //read in the scheduler controls settings whenever the submit button is pressed,
+        //to display current values
+        $.ajax({
+          type: "GET",
+          url: "/schd_controls_settings",
+          dataType: "json",
+
+          success: function( response ) {
+
+            $('#schd_controls_settings_view').html(''); //clear the HTML
+
+            for (let value in response) {
+              $('#schd_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+            }
+          } //put whatever is in the JSON into the HTML
+
+        })
+
+          .fail(function( ) {
+            console.log("Error with the html getting of current_controls_settings");
+          });
+
+        event.preventDefault(); //prevent the submission button from attempting
+        //to reload the page to submit the form without AJAX
+
+      });
+
+
+      $("#controls_form").submit(function (event) {
+        //takes the data from the submission of the form and sends it
+        //via AJAX and JSON to the backend for processing
+
+         var outputCount = 7; //the number of controls outputs
+
+         var userControlsInput = []; //reads in the user's input, which needs to be
+         //formatted before being sent
+
+         var controlsData = {}; //holds the data to be sent
+
+         for (iterControlsRead = 0; iterControlsRead < outputCount; iterControlsRead++) {
+           userControlsInput.push($("#controls_form").serializeArray(
+             {checkboxesAsBools: true})[iterControlsRead]); //turns the input from the
+             //submission into an array with {"name":<nameofinput>, "value":<valueofinput>}
+             //elements, corrected for checkbox error
+
+           controlsData[userControlsInput[iterControlsRead]["name"]]
+           = userControlsInput[iterControlsRead]["value"];
+           //turns the array into a dictionary with <nameofinput>:<valueofinput> elements
+
+           if (controlsData[userControlsInput[iterControlsRead]["name"]] === "") {
+             //if a input has no value, return an alert, note that this returns
+             //a false positive if the checkbox correction (see above) is sending
+             //booleans and not boolean strings
+             alert('Error, no data inputed');
+             event.preventDefault();
+             return; //do not send data if there is none to send
+           }
+         }
+
+       $.ajax({type:"POST",
+                url:"/controls_feed",
+                data:JSON.stringify(controlsData),
+                contentType: "application/json",})
+
+                .fail(function( ) {
+                   console.log("Error with the html posting of control_feed");
+                 });
+                 //send the data via AJAX as a JSON string to the relative url
+                 // '/controls_feed', if it fails, write to the console
+
+       //read in the current controls settings whenever the submit button is pressed,
+       //to display current values
+       $.ajax({
+         type: "GET",
+         url: "/current_controls_settings",
+         dataType: "json",
+
+         success: function( response ) {
+
+           $('#curr_controls_settings_view').html(''); //clear the HTML
+
+           for (let value in response) {
+             $('#curr_controls_settings_view').append(String([value]) + ": " + String(response[value]) + "<br>");
+           }
+         } //put whatever is in the JSON into the HTML
+
+       })
+
+         .fail(function( ) {
+           console.log("Error with the html getting of current_controls_settings");
+         });
+
+           event.preventDefault(); //prevent the submission button from attempting
+           //to reload the page to submit the form without AJAX
+      });
+
+    var inputCount = 7; //the number of different incoming data
+    //for the graph
+
+    const dataDisplay = []; //the array of values for the display of the graph,
+    //this will hold the data itself as well as the name of the variables, the
+    //colors, etc.
+
+    for (iterDisplay = 0; iterDisplay < inputCount; iterDisplay++) {
+      //create an empty data element for every incoming data
+       dataDisplay.push({data: [], label: ''});
+    }
+
+    //holds the actual data, note the maping of the generated color to both
+    //the backgroundColor and the borderColor-- this makes the dots and lines
+    // the same generated color, this also holds the dataDisplay value
+    const dataInfo = {
+      datasets: dataDisplay.map(v => {
+        var color = generateColor();
+        return {...v, backgroundColor: color, borderColor: color}
+      })
+    };
+
+    //hold the graph's general config data (ie. it's a line graph), as well as
+    //the scaling of the graph, which is held at a max 0f 100, this also holds
+    //the dataInfo value
+    const config = {
+      type: 'line',
+      labels: [],
+      data: dataInfo,
+      options: {
+        fill: false,
+        tension: 0.25,
+        responsive: true,
+        scales: {
+          y: {beginAtZero: true,
+              max:100
+            }
+        },
+        animation: false
+      }
+    };
+
+      const context = document.getElementById('live_graph').getContext('2d');
+      //this is where the graph will be published in the HTML
+
+      const live_graph = new Chart(context, config);
+      //this creates the graph, note that it passes in both the config and the
+      //context (where to put it)
+
+      const source = new EventSource("/graph_feed");
+      //create a new source of a json text stream (aka, this is where the data
+      //actually is read into the program)
+
+      source.onmessage = function (event) {
+        //when the source has a new message, run this event
+
+        const data = JSON.parse(event.data); //the data comes from a translating
+        //the JSON sent by the text stream
+
+        if (config.data.labels.length === 10) {
+          //when there are 10 labels on the graph, shift over every datapoint
+          config.data.labels.shift(); //shift over the labels (aka the time values)
+          for (iterShift = 0; iterShift < inputCount; iterShift++) {
+            config.data.datasets[iterShift].data.shift(); //shift over the data
+          }
+        }
+
+        config.data.labels.push(data.time); //add a new label from the text stream
+        // (aka the time values)
+
+        var iterUpdate = 0; //this value will keep track of where to push the
+        //data (ie. dataset[0], dataset[1], etc)
+
+        for (let value in data) { //iterate through all the keys
+          if (value != 'time') { //ignore the key which is 'time', this is the
+            //key for the labels so we ignore it
+
+            if (config.data.datasets[iterUpdate].label == String(value)) {
+              config.data.datasets[iterUpdate].data.push(data[value]);
+              //push the new data from the text stream, only if the label matches
+            }
+            else if (config.data.datasets[iterUpdate].label != String(value)
+            && config.data.datasets[iterUpdate].label === "") {
+              //if the label != to the value of the string, and the label is empty,
+              //set it equal to the value of the string and push the first bit of data
+              config.data.datasets[iterUpdate].label = String(value);
+              config.data.datasets[iterUpdate].data.push(data[value]);
+            }
+            iterUpdate++; //increment the update location
+          }
+        }
+
+        live_graph.update(); //update the graph
+      };
+    });
+
+    $(window).on("beforeunload", function() { //makes sure that the
+      //semaphores are released when the document unloads
+          $.ajax({
+            type: 'POST',
+            async: false,
+            url: "/close_doc",
+            data: { }
+          }).fail(function( ) {
+            console.log("Error with the html getting of close_doc");
+          });
+
+    });
+
+  </script>
+
+</body>
+
+</html>
