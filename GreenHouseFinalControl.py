@@ -1,5 +1,6 @@
 import board
 import json
+import requests
 #import RPi.GPIO as GPIO
 import time
 import neopixel
@@ -161,6 +162,12 @@ fan.value = False
 heat.value = False
 #lights.fill((0,0,0))
 
+url = "https://127.0.0.1:5000"
+write_to_app = url + "/read_client" # server page for read
+read_controls_from_app = url + "/write_client_controls" #server page for writing controls
+read_schd_from_app = url + "/write_client_schd" #server page for writing scheduler
+
+
 currentDate = get_current_date()
 dateToRun = currentDate
 
@@ -168,6 +175,17 @@ dateToRun = currentDate
 while True:
     
     #read in data packet
+    
+    #reads from the controls 
+    controls_data = requests.get(read_controls_from_app, timeout=10)
+    web_controls_input = controls_data.json()
+    
+    print(web_controls_input)
+    
+    #reads from the scheduler
+    schd_data = requests.get(read_schd_from_app, timeout=10)
+    web_schd_input = schd_data.json()
+    
 
     #Regular Inputs to process
     currTempLow = 10 #current_temp_low #int
@@ -194,7 +212,18 @@ while True:
     currentTemp = gather_temp_data()
     currentLight = gather_light_data()
     currentHumid = gather_humid_data()
+    currentTime = get_current_time()
+    currentDate = get_current_date()
     print("----------------------------------------")
+    
+    #send to other program
+    data_to_send = {'time':currentTime, 'Temperature (in C)':f'{currentTemp:.2f}',
+                    'Humidity':f'{currentHumid:.2f}', 'Light Level':f'{currentLight:.2f}'}
+    
+    json_data = json.dumps(data_to_send)
+    
+    requests.post(write_to_app, json=json_data, timeout=10) #post data to the write address
+    
     
     #basic controls- not in scheduler
     
@@ -232,8 +261,6 @@ while True:
         #stop_lights()
         
     #time scheduler
-    currentTime = get_current_time()
-    currentDate = get_current_date()
     
     #water pump
     if(scWaterDripEn == True):
@@ -253,7 +280,7 @@ while True:
             print('time to turn off light')
             #stop_lights()
             
-    #time.sleep(.5)
+    time.sleep(1)
     
         
 
