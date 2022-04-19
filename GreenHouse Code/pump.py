@@ -14,8 +14,13 @@ pump = digitalio.DigitalInOut(board.D12)
 
 pump.direction = digitalio.Direction.OUTPUT
 
+pump.value = True
+
 while True:
     print("PUMP")
+    time.sleep(5)
+    pump.value = True
+    time.sleep(5)
     pump.value = False
     time.sleep(5)
     pump.value = True
