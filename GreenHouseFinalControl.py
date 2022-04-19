@@ -43,7 +43,7 @@ pump = digitalio.DigitalInOut(board.D12)
 fan = digitalio.DigitalInOut(board.D13)
 heat = digitalio.DigitalInOut(board.D16)
 lights = neopixel.NeoPixel(board.D18,6,brightness=1)
-cam = cv2.VideoCapture(0)
+#cam = cv2.VideoCapture(0)
 
 #Set GPIO mode
 pump.direction = digitalio.Direction.OUTPUT
@@ -111,6 +111,7 @@ def run_fan():
 def stop_fan():
     print("Fan is off")
     fan.value = False
+    time.sleep(3)
 
 def run_fan_duration(duration):
     print('Running fan for ', duration, 'seconds')
@@ -161,12 +162,15 @@ pump.value = True
 fan.value = False
 heat.value = False
 #lights.fill((0,0,0))
+time.sleep(3)
 
-url = "https://127.0.0.1:5000"
-write_to_app = url + "/read_client" # server page for read
-read_controls_from_app = url + "/write_client_controls" #server page for writing controls
-read_schd_from_app = url + "/write_client_schd" #server page for writing scheduler
+url = "http://172.20.10.7:5000" #address of the server
 
+write_to_app = url + "/read_client" #server page for read
+read_controls_from_app = url + "/write_client_controls"
+#server page for writing controls
+read_schd_from_app = url + "/write_client_schd"
+#server page for writing scheduler
 
 currentDate = get_current_date()
 dateToRun = currentDate
@@ -180,31 +184,29 @@ while True:
     controls_data = requests.get(read_controls_from_app, timeout=10)
     web_controls_input = controls_data.json()
     
-    print(web_controls_input)
-    
     #reads from the scheduler
     schd_data = requests.get(read_schd_from_app, timeout=10)
     web_schd_input = schd_data.json()
     
 
     #Regular Inputs to process
-    currTempLow = 10 #current_temp_low #int
-    currTempHigh = 30 #current_temp_high #int
-    currDripEn = False #current_water_drip_en #bool
-    currDripDur = 5 #current_water_drip_duration #int
-    currLight = False #current_lights #bool
-    currHumidHigh = 90 #current_humidity_high #int
-    currFan = False # current_fan #bool
+    currTempLow = web_controls_input['current_temp_low'] #int
+    currTempHigh = web_controls_input['current_temp_high'] #int
+    currDripEn = web_controls_input['current_water_drip_en'] #bool
+    currDripDur = web_controls_input['current_water_drip_duration'] #int
+    currLight = web_controls_input['current_lights'] #bool
+    currHumidHigh = web_controls_input['current_humid_high'] #int
+    currHeat = web_controls_input['current_heat_pad'] 
+    currFan = web_controls_input['current_fan']
 
     #Scheduled Inputs to process
-    scWaterDripEn = True #schd_water_drip_en #bool
-    scWaterDripTime = '22:47' # sch_water_drip_time #time in 24h
-    scWaterDripDur = 5 #sch_water_drip_duration
-    scWaterDripRepeat = 2 #schd_water_drip_repeat #int
-    #schd_water_drip_inf #bool
-    scLightEn = False #schd_light_en #bool
-    scLightStart = '23:30' #schd_light_start #time in 24h
-    scLightStop = '23:45' #schd_light_stop #time in 24h
+    scWaterDripEn = web_schd_input['schd_water_drip_en'] #bool
+    scWaterDripTime = web_schd_input['schd_water_drip_time'] #time in 24h
+    scWaterDripDur = web_schd_input['schd_water_drip_duration']
+    scWaterDripRepeat = web_schd_input['schd_water_drip_repeat'] #int
+    scLightEn = web_schd_input['schd_light_en'] #bool
+    scLightStart = web_schd_input['schd_light_start'] #time in 24h
+    scLightStop = web_schd_input['schd_light_stop'] #time in 24h
     
     
     #read values from pi
@@ -228,21 +230,34 @@ while True:
     #basic controls- not in scheduler
     
     #fan controls
-    if ((currentTemp >= currTempHigh) or (currentHumid >= currHumidHigh) or (currFan == True)):
-        print('Condition to turn fan on met')
+    print(currFan)
+
+    #print(float(currentTemp) >= float(currTempHigh))
+
+    if (float(currentTemp) >= float(currTempHigh)):
+        print('Condition to turn fan on met- temp')
         run_fan()
         
-    if ((currentTemp <= currTempLow) or (currFan == False)):
+    if (float(currentHumid) >= float(currHumidHigh)): 
+        print('Condition to turn fan on met-humid')
+        run_fan()
+        
+    if (bool(currFan) == True):
+        print('Condition to turn fan on met-user')
+        run_fan()
+        
+        
+    if ((float(currentTemp) <= float(currTempLow)) or (bool(currFan) == False)):
         print('Condition to turn fan off met')
         stop_fan()
         
     #Heat controls
     
-    if (currentTemp <= currTempLow):
+    if ((float(currentTemp) <= float(currTempLow)) or (bool(currHeat) == True)):
         print('Condition to turn heat on met')
         run_heat()
     
-    if (currentTemp > currTempLow):
+    if (float(currentTemp) > float(currTempLow)):
         print('Condition to turn heat off met')
         stop_heat()
         
