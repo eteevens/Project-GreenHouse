@@ -293,7 +293,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
                   {
                       name: elem.name,
                       value: (o.checkboxesAsBools && this.type === 'checkbox') ?
-                          (this.checked ? "True" : "False") :
+                          (this.checked ? true : false) :
                           val
                   };
               }).get();
