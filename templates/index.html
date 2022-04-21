@@ -105,11 +105,11 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
           <input class="time end" id="schd_light_stop" type="text" name="schd_light_stop" />
         </p>
 
-        <input type="submit" value="Submit">
+        <input type="submit" value="Submit Scheduler">
       </form>
     </div>
 
-    <div class=view-controls id="curr_controls_settings_view">
+    <div class=view-controls id=curr_controls_settings_view>
     </div>
 
     <div class=view-timing id="schd_controls_settings_view">
@@ -141,8 +141,11 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
           <br>
 
-          <input type="submit" value="Submit">
+          <input type="submit" value="Submit Controls">
         </form>
+
+        <label fo="graph_scaling">Max Graph Height:</label>
+        <input type="number" id="graph_scaling" name="graph_scaling" min="1" max="150"/><br>
     </div>
   </div>
 
@@ -439,6 +442,17 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
     var inputCount = 6; //the number of different incoming data
     //for the graph
 
+    var graphScale = 100; //the max y for the graph
+
+    $('#graph_scaling').change(function () { //when the graph scaling changes
+        var newScale = $('#graph_scaling').val();
+        if (newScale === "") { //if the user hasn't inputed data, ignore the input
+          alert('error, no data inputed');
+          return;
+        };
+        graphScale = parseFloat(newScale); //return the user's new graph scale
+    });
+
     const dataDisplay = []; //the array of values for the display of the graph,
     //this will hold the data itself as well as the name of the variables, the
     //colors, etc.
@@ -471,7 +485,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
         responsive: true,
         scales: {
           y: {beginAtZero: true,
-              max:100
+              max: graphScale
             }
         },
         animation: false
@@ -494,6 +508,8 @@ crossorigin="anonymous" referrerpolicy="no-referrer" />
 
         const data = JSON.parse(event.data); //the data comes from a translating
         //the JSON sent by the text stream
+
+        config.options.scales.y.max = graphScale; //update the graph scale
 
         if (config.data.labels.length === 10) {
           //when there are 10 labels on the graph, shift over every datapoint
