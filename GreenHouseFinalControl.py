@@ -235,8 +235,8 @@ while True:
     #fan controls
     #print(currFan)
     #print(currFan == True)
-    print(type(currDripDur))
-    print(currentTemp >= currTempHigh)
+    #print(type(currDripDur))
+    #print(currentTemp >= currTempHigh)
     
     if((float(currentTemp) >= float(currTempHigh)) or
        (float(currentHumid) >= float(currHumidHigh)) or (bool(currFan) == True)):

@@ -215,8 +215,8 @@ def calendar_feed_route():
     retrieve_cal = request.get_json() #get the user's input from the GUI
 
     #recasts the number inputs (which come in as strings)
-    retrieve_cal['schd_water_drip_repeat'] = int(retrieve_output['schd_water_drip_repeat'])
-    retrieve_cal['schd_water_drip_duration'] = int(retrieve_output['schd_water_drip_duration'])
+    retrieve_cal['schd_water_drip_repeat'] = int(retrieve_cal['schd_water_drip_repeat'])
+    retrieve_cal['schd_water_drip_duration'] = int(retrieve_cal['schd_water_drip_duration'])
 
     schedulerFrameSem.acquire()
     global schedulerFrame
