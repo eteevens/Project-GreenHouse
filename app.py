@@ -17,8 +17,8 @@ graphFrameSem = Semaphore()
 
 #the current controls frame, initalized to standard settings to prevent errors
 controlsFrame = {'current_temp_low': float(10),
-                 'current_temp_high': float(15),
-                 'current_humid_high': 60,
+                 'current_temp_high': float(30),
+                 'current_humid_high': 90,
                  'current_water_drip_en': False,
                  'current_water_drip_duration': 0,
                  'current_lights': False,
